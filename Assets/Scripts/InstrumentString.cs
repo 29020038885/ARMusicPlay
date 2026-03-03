@@ -323,6 +323,34 @@ public class InstrumentString : MonoBehaviour
             }
         }
     }
+
+    /// <summary>
+    /// 泛音拨弦（古琴泛音奏法）：用空弦音源做音高倍率播放，不按品
+    /// </summary>
+    /// <param name="pitchMultiplier">泛音倍率，如 2=1/2弦（高八度），3=1/3弦，4=1/4弦…</param>
+    public void PluckStringHarmonic(float pitchMultiplier)
+    {
+        AudioClip clipToPlay = openStringSound ?? TryGetAudioFromManager(-1);
+        if (clipToPlay == null)
+        {
+            Debug.LogWarning($"弦 {stringIndex} 无空弦音源，无法播放泛音");
+            return;
+        }
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 0.5f;
+        }
+        audioSource.clip = clipToPlay;
+        audioSource.pitch = pitchMultiplier;
+        audioSource.volume = 0.9f;
+        audioSource.Play();
+        isPlaying = true;
+        OnStringPlucked?.Invoke(stringIndex, -1);
+        ShowStringVibration();
+        if (Debug.isDebugBuild) Debug.Log($"🎵 泛音 弦{stringIndex} 倍率{pitchMultiplier:F2}");
+    }
     
     /// <summary>
     /// 尝试从 InstrumentAudioManager 获取音频

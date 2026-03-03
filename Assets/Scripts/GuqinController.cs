@@ -2,6 +2,19 @@ using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
+/// 古琴奏法：散音（空弦）、按音（按品）、泛音（虚按徽位）
+/// </summary>
+public enum GuqinTechnique
+{
+    /// <summary>散音 - 空弦，不按品</summary>
+    SanYin = 0,
+    /// <summary>按音 - 按品后拨弦</summary>
+    AnYin = 1,
+    /// <summary>泛音 - 虚按泛音点后拨弦</summary>
+    FanYin = 2
+}
+
+/// <summary>
 /// 古琴控制器 - 管理古琴的7根弦和交互
 /// </summary>
 public class GuqinController : MonoBehaviour
@@ -46,12 +59,18 @@ public class GuqinController : MonoBehaviour
     [Tooltip("每根弦的品位碰撞体 [弦索引][品索引]")]
     public Collider[][] fretCollidersPerString;
 
+    [Header("奏法（手机端可由 UI 设置）")]
+    [Tooltip("当前奏法：散音=空弦，按音=按品，泛音=虚按徽位")]
+    public GuqinTechnique currentTechnique = GuqinTechnique.AnYin;
+
     [Header("调试")]
     [Tooltip("显示调试信息")]
     public bool showDebug = true;
 
     private Dictionary<int, int> currentFretPositions = new Dictionary<int, int>();
-    private Dictionary<int, int> recordedFretPositions = new Dictionary<int, int>(); // 右键记录，左键拨弦时应用
+    private Dictionary<int, int> recordedFretPositions = new Dictionary<int, int>(); // PC：右键记录，左键拨弦时应用
+    /// <summary>手机端：实时按品（拇指持续按住品位），键=弦索引，值=品索引，-1 表示该弦无按品</summary>
+    private Dictionary<int, int> liveFretHoldByString = new Dictionary<int, int>();
     private InstrumentInputManager inputManager;
 
     void Start()
@@ -217,7 +236,131 @@ public class GuqinController : MonoBehaviour
     }
 
     /// <summary>
-    /// 处理拨弦（左键）：有记录则先应用按品再拨弦，然后清空该弦记录
+    /// 泛音品位对应的音高倍率（1/2弦→2倍，1/3→3倍，1/4→4倍…）
+    /// </summary>
+    private static readonly float[] HarmonicPitchMultipliers = { 2f, 3f, 4f, 5f, 6f, 8f };
+
+    /// <summary>
+    /// 手机端：清空所有「实时按品」状态（手指离开品位时由 InputManager 调用）
+    /// </summary>
+    public void ClearAllLiveFretHolds()
+    {
+        liveFretHoldByString.Clear();
+    }
+
+    /// <summary>
+    /// 手机端：设置某弦的实时按品（拇指按住品位时每帧更新，滑音即拇指滑动）
+    /// </summary>
+    public void SetLiveFretHold(int stringIndex, int fretIndex)
+    {
+        if (stringIndex >= 0 && stringIndex < strings.Length)
+            liveFretHoldByString[stringIndex] = fretIndex;
+    }
+
+    /// <summary>
+    /// 手机端：取消某弦的实时按品
+    /// </summary>
+    public void ClearLiveFretHold(int stringIndex)
+    {
+        liveFretHoldByString.Remove(stringIndex);
+    }
+
+    /// <summary>
+    /// 根据射线检测结果解析是否点在品位上，并返回弦索引与品索引（用于手机多指）
+    /// </summary>
+    public bool GetFretFromHit(RaycastHit hit, out int stringIndex, out int fretIndex)
+    {
+        stringIndex = -1;
+        fretIndex = -1;
+        var fretInfo = hit.collider.GetComponent<FretInfo>();
+        if (fretInfo != null)
+        {
+            stringIndex = fretInfo.stringIndex;
+            fretIndex = fretInfo.treatAsOpenString ? -1 : fretInfo.fretIndex;
+            return stringIndex >= 0 && stringIndex < strings.Length;
+        }
+        if (fretCollidersPerString != null)
+        {
+            for (int s = 0; s < fretCollidersPerString.Length; s++)
+            {
+                if (fretCollidersPerString[s] == null) continue;
+                for (int f = 0; f < fretCollidersPerString[s].Length; f++)
+                {
+                    if (fretCollidersPerString[s][f] == hit.collider)
+                    {
+                        stringIndex = s;
+                        fretIndex = f;
+                        return true;
+                    }
+                }
+            }
+        }
+        if (fretColliders != null)
+        {
+            for (int i = 0; i < fretColliders.Length; i++)
+            {
+                if (fretColliders[i] == hit.collider)
+                {
+                    fretIndex = i;
+                    stringIndex = DetermineStringFromPosition(hit.point);
+                    return stringIndex >= 0 && stringIndex < strings.Length;
+                }
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 手机端：拨弦时使用「实时按品」状态（拇指持续按住品位、另一指拨弦；滑音由拇指滑动自然产生）
+    /// </summary>
+    public void HandlePluckWithLiveFret(Ray ray)
+    {
+        RaycastHit hit;
+        if (!Physics.Raycast(ray, out hit, 100f)) return;
+        var clickedString = hit.collider.GetComponent<InstrumentString>();
+        if (clickedString == null) return;
+        int stringIndex = clickedString.stringIndex;
+
+        switch (currentTechnique)
+        {
+            case GuqinTechnique.SanYin:
+                clickedString.ReleaseFret();
+                if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
+                clickedString.PluckString();
+                if (showDebug) Debug.Log($"古琴【散音】触控 第{stringIndex + 1}弦 空弦");
+                break;
+            case GuqinTechnique.AnYin:
+                if (liveFretHoldByString.TryGetValue(stringIndex, out int anFret) && anFret >= 0)
+                {
+                    clickedString.PressFret(anFret);
+                    currentFretPositions[stringIndex] = anFret;
+                    if (showDebug) Debug.Log($"古琴【按音】触控 第{stringIndex + 1}弦 第{anFret + 1}品（拇指按住）");
+                }
+                else
+                {
+                    clickedString.ReleaseFret();
+                    if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
+                    if (showDebug) Debug.Log($"古琴【按音】触控 第{stringIndex + 1}弦 空弦");
+                }
+                clickedString.PluckString();
+                break;
+            case GuqinTechnique.FanYin:
+                clickedString.ReleaseFret();
+                if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
+                float harmonicMult = 2f;
+                if (liveFretHoldByString.TryGetValue(stringIndex, out int fanFret) && fanFret >= 0)
+                {
+                    int idx = Mathf.Clamp(fanFret, 0, HarmonicPitchMultipliers.Length - 1);
+                    harmonicMult = HarmonicPitchMultipliers[idx];
+                    if (showDebug) Debug.Log($"古琴【泛音】触控 第{stringIndex + 1}弦 泛音点品{fanFret + 1}");
+                }
+                clickedString.PluckStringHarmonic(harmonicMult);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 处理拨弦（左键）：根据当前奏法决定散音/按音/泛音（PC 用 recordedFretPositions）
     /// </summary>
     public void HandlePluck(Ray ray)
     {
@@ -228,30 +371,64 @@ public class GuqinController : MonoBehaviour
         if (clickedString == null) return;
 
         int stringIndex = clickedString.stringIndex;
-        if (recordedFretPositions.TryGetValue(stringIndex, out int fretIndex))
+
+        switch (currentTechnique)
         {
-            if (fretIndex >= 0)
-            {
-                clickedString.PressFret(fretIndex);
-                currentFretPositions[stringIndex] = fretIndex;
-                if (showDebug) Debug.Log($"古琴：应用记录按品 第{stringIndex + 1}弦 第{fretIndex + 1}品，再拨弦");
-            }
-            else
-            {
+            case GuqinTechnique.SanYin:
+                // 散音：一律空弦，不应用按品
                 clickedString.ReleaseFret();
                 if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
-                if (showDebug) Debug.Log($"古琴：记录为空弦 第{stringIndex + 1}弦，拨弦");
-            }
-            recordedFretPositions.Remove(stringIndex);
-        }
-        else
-        {
-            clickedString.ReleaseFret();
-            if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
-        }
+                recordedFretPositions.Remove(stringIndex);
+                clickedString.PluckString();
+                if (showDebug) Debug.Log($"古琴【散音】：第{stringIndex + 1}弦 空弦");
+                break;
 
-        clickedString.PluckString();
-        if (showDebug) Debug.Log($"古琴：拨动第 {stringIndex + 1} 弦");
+            case GuqinTechnique.AnYin:
+                // 按音：有记录则应用按品再拨弦
+                if (recordedFretPositions.TryGetValue(stringIndex, out int anFret))
+                {
+                    if (anFret >= 0)
+                    {
+                        clickedString.PressFret(anFret);
+                        currentFretPositions[stringIndex] = anFret;
+                        if (showDebug) Debug.Log($"古琴【按音】：第{stringIndex + 1}弦 第{anFret + 1}品");
+                    }
+                    else
+                    {
+                        clickedString.ReleaseFret();
+                        if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
+                        if (showDebug) Debug.Log($"古琴【按音】：第{stringIndex + 1}弦 空弦");
+                    }
+                    recordedFretPositions.Remove(stringIndex);
+                }
+                else
+                {
+                    clickedString.ReleaseFret();
+                    if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
+                }
+                clickedString.PluckString();
+                if (showDebug) Debug.Log($"古琴【按音】：拨动第{stringIndex + 1}弦");
+                break;
+
+            case GuqinTechnique.FanYin:
+                // 泛音：用记录的位置作为泛音点，不实按
+                clickedString.ReleaseFret();
+                if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
+                float harmonicMult = 2f;
+                if (recordedFretPositions.TryGetValue(stringIndex, out int fanFret) && fanFret >= 0)
+                {
+                    int idx = Mathf.Clamp(fanFret, 0, HarmonicPitchMultipliers.Length - 1);
+                    harmonicMult = HarmonicPitchMultipliers[idx];
+                    recordedFretPositions.Remove(stringIndex);
+                    if (showDebug) Debug.Log($"古琴【泛音】：第{stringIndex + 1}弦 泛音点品{fanFret + 1} 倍率{harmonicMult}");
+                }
+                else
+                {
+                    if (showDebug) Debug.Log($"古琴【泛音】：第{stringIndex + 1}弦 默认1/2弦（2倍）");
+                }
+                clickedString.PluckStringHarmonic(harmonicMult);
+                break;
+        }
     }
 
     /// <summary>

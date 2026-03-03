@@ -2,8 +2,18 @@ using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
+/// 琵琶奏法：散音（空弦）、按音（按品/滑音）、泛音、扫弦
+/// </summary>
+public enum PipaTechnique
+{
+    SanYin = 0,
+    AnYin = 1,
+    FanYin = 2,
+    Strum = 3
+}
+
+/// <summary>
 /// 琵琶控制器 - 管理琵琶的4根弦和交互
-/// 琵琶有品位，需要先按品再拨弦
 /// </summary>
 public class PipaController : MonoBehaviour
 {
@@ -57,13 +67,20 @@ public class PipaController : MonoBehaviour
     [Tooltip("是否启用扫弦模式")]
     public bool enableStrumming = true;
 
+    [Header("奏法（PC 数字键 / 手机由触控决定）")]
+    [Tooltip("当前奏法：散音/按音/泛音/扫弦")]
+    public PipaTechnique currentTechnique = PipaTechnique.AnYin;
+
     [Header("调试")]
     [Tooltip("显示调试信息")]
     public bool showDebug = true;
 
     private Dictionary<int, int> currentFretPositions = new Dictionary<int, int>();
     private Dictionary<int, int> recordedFretPositions = new Dictionary<int, int>();
+    private Dictionary<int, int> liveFretHoldByString = new Dictionary<int, int>();
     private InstrumentInputManager inputManager;
+
+    private static readonly float[] HarmonicPitchMultipliers = { 2f, 3f, 4f, 5f, 6f, 8f };
     private bool isPressingFret = false;
     private int lastPressedFretIndex = -1;
 
@@ -230,36 +247,166 @@ public class PipaController : MonoBehaviour
         return Mathf.Lerp(start, end, curve);
     }
 
-    public void HandlePluck(Ray ray)
+    public void ClearAllLiveFretHolds() { liveFretHoldByString.Clear(); }
+    public void SetLiveFretHold(int stringIndex, int fretIndex)
+    {
+        if (stringIndex >= 0 && stringIndex < strings.Length) liveFretHoldByString[stringIndex] = fretIndex;
+    }
+    public void ClearLiveFretHold(int stringIndex) { liveFretHoldByString.Remove(stringIndex); }
+
+    public bool GetFretFromHit(RaycastHit hit, out int stringIndex, out int fretIndex)
+    {
+        stringIndex = -1; fretIndex = -1;
+        var fretInfo = hit.collider.GetComponent<FretInfo>();
+        if (fretInfo != null)
+        {
+            stringIndex = fretInfo.stringIndex;
+            fretIndex = fretInfo.treatAsOpenString ? -1 : fretInfo.fretIndex;
+            return stringIndex >= 0 && stringIndex < strings.Length;
+        }
+        if (fretCollidersPerString != null)
+        {
+            for (int s = 0; s < fretCollidersPerString.Length; s++)
+            {
+                if (fretCollidersPerString[s] == null) continue;
+                for (int f = 0; f < fretCollidersPerString[s].Length; f++)
+                {
+                    if (fretCollidersPerString[s][f] == hit.collider)
+                    {
+                        stringIndex = s; fretIndex = f; return true;
+                    }
+                }
+            }
+        }
+        if (fretColliders != null)
+        {
+            for (int i = 0; i < fretColliders.Length; i++)
+            {
+                if (fretColliders[i] == hit.collider)
+                {
+                    fretIndex = i; stringIndex = DetermineStringFromPosition(hit.point);
+                    return stringIndex >= 0 && stringIndex < strings.Length;
+                }
+            }
+        }
+        return false;
+    }
+
+    /// <summary>手机端：按实时按品拨弦（拇指持续按品可滑音）</summary>
+    public void HandlePluckWithLiveFret(Ray ray)
     {
         RaycastHit hit;
         if (!Physics.Raycast(ray, out hit, 100f)) return;
         var clickedString = hit.collider.GetComponent<InstrumentString>();
         if (clickedString == null) return;
         int stringIndex = clickedString.stringIndex;
-        if (recordedFretPositions.TryGetValue(stringIndex, out int fretIndex))
+        switch (currentTechnique)
         {
-            if (fretIndex >= 0)
-            {
-                clickedString.PressFret(fretIndex);
-                currentFretPositions[stringIndex] = fretIndex;
-                if (showDebug) Debug.Log($"琵琶：应用记录按品 第{stringIndex + 1}弦 第{fretIndex + 1}品，再拨弦");
-            }
-            else
-            {
+            case PipaTechnique.SanYin:
                 clickedString.ReleaseFret();
                 if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
-                if (showDebug) Debug.Log($"琵琶：记录为空弦 第{stringIndex + 1}弦，拨弦");
-            }
-            recordedFretPositions.Remove(stringIndex);
+                clickedString.PluckString();
+                if (showDebug) Debug.Log($"琵琶【散音】触控 第{stringIndex + 1}弦");
+                break;
+            case PipaTechnique.AnYin:
+                if (liveFretHoldByString.TryGetValue(stringIndex, out int anFret) && anFret >= 0)
+                {
+                    clickedString.PressFret(anFret);
+                    currentFretPositions[stringIndex] = anFret;
+                    if (showDebug) Debug.Log($"琵琶【按音】触控 第{stringIndex + 1}弦 第{anFret + 1}品");
+                }
+                else
+                {
+                    clickedString.ReleaseFret();
+                    if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
+                }
+                clickedString.PluckString();
+                break;
+            case PipaTechnique.FanYin:
+                clickedString.ReleaseFret();
+                if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
+                float harmonicMult = 2f;
+                if (liveFretHoldByString.TryGetValue(stringIndex, out int fanFret) && fanFret >= 0)
+                {
+                    int idx = Mathf.Clamp(fanFret, 0, HarmonicPitchMultipliers.Length - 1);
+                    harmonicMult = HarmonicPitchMultipliers[idx];
+                }
+                clickedString.PluckStringHarmonic(harmonicMult);
+                if (showDebug) Debug.Log($"琵琶【泛音】触控 第{stringIndex + 1}弦");
+                break;
+            case PipaTechnique.Strum:
+                clickedString.ReleaseFret();
+                if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
+                clickedString.PluckString();
+                break;
         }
-        else
+    }
+
+    /// <summary>PC：根据 currentTechnique 与 recordedFretPositions 拨弦；扫弦由 Input 直接调 StrumStrings</summary>
+    public void HandlePluck(Ray ray)
+    {
+        if (currentTechnique == PipaTechnique.Strum)
         {
-            clickedString.ReleaseFret();
-            if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
+            StrumStrings(true);
+            return;
         }
-        clickedString.PluckString();
-        if (showDebug) Debug.Log($"琵琶：拨动第 {stringIndex + 1} 弦");
+        RaycastHit hit;
+        if (!Physics.Raycast(ray, out hit, 100f)) return;
+        var clickedString = hit.collider.GetComponent<InstrumentString>();
+        if (clickedString == null) return;
+        int stringIndex = clickedString.stringIndex;
+
+        switch (currentTechnique)
+        {
+            case PipaTechnique.SanYin:
+                clickedString.ReleaseFret();
+                if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
+                recordedFretPositions.Remove(stringIndex);
+                clickedString.PluckString();
+                if (showDebug) Debug.Log($"琵琶【散音】第{stringIndex + 1}弦");
+                break;
+            case PipaTechnique.AnYin:
+                if (recordedFretPositions.TryGetValue(stringIndex, out int anFret))
+                {
+                    if (anFret >= 0)
+                    {
+                        clickedString.PressFret(anFret);
+                        currentFretPositions[stringIndex] = anFret;
+                    }
+                    else
+                    {
+                        clickedString.ReleaseFret();
+                        if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
+                    }
+                    recordedFretPositions.Remove(stringIndex);
+                }
+                else
+                {
+                    clickedString.ReleaseFret();
+                    if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
+                }
+                clickedString.PluckString();
+                if (showDebug) Debug.Log($"琵琶【按音】第{stringIndex + 1}弦");
+                break;
+            case PipaTechnique.FanYin:
+                clickedString.ReleaseFret();
+                if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
+                float harmonicMult = 2f;
+                if (recordedFretPositions.TryGetValue(stringIndex, out int fanFret) && fanFret >= 0)
+                {
+                    int idx = Mathf.Clamp(fanFret, 0, HarmonicPitchMultipliers.Length - 1);
+                    harmonicMult = HarmonicPitchMultipliers[idx];
+                    recordedFretPositions.Remove(stringIndex);
+                }
+                clickedString.PluckStringHarmonic(harmonicMult);
+                if (showDebug) Debug.Log($"琵琶【泛音】第{stringIndex + 1}弦");
+                break;
+            default:
+                clickedString.ReleaseFret();
+                if (currentFretPositions.ContainsKey(stringIndex)) currentFretPositions.Remove(stringIndex);
+                clickedString.PluckString();
+                break;
+        }
     }
 
     public void HandleFretRecord(Ray ray)

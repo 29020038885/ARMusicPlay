@@ -489,7 +489,7 @@ MonoBehaviour:
   stringIndex: 4
   basePitch: 60
   fretSounds: []
-  openStringSound: {fileID: 0}
+  openStringSound: {fileID: 8300000, guid: 260bf26949105c344a4aa7982f1864fe, type: 3}
   usePitchShifting: 1
   preferCustomFretSounds: 1
   touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 0}
@@ -1020,7 +1020,7 @@ MonoBehaviour:
   stringIndex: 0
   basePitch: 60
   fretSounds: []
-  openStringSound: {fileID: 0}
+  openStringSound: {fileID: 8300000, guid: 77f93b3e3d5818942b872f8c375827e8, type: 3}
   usePitchShifting: 1
   preferCustomFretSounds: 1
   touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 0}
@@ -1235,6 +1235,7 @@ MonoBehaviour:
   fretHeight: 0.01
   enableBending: 1
   enableStrumming: 1
+  currentTechnique: 1
   showDebug: 1
 --- !u!4 &281655799 stripped
 Transform:
@@ -1959,7 +1960,7 @@ MonoBehaviour:
   stringIndex: 3
   basePitch: 60
   fretSounds: []
-  openStringSound: {fileID: 8300000, guid: 75eb1a9ecb2a00e47806f2fb0a849658, type: 3}
+  openStringSound: {fileID: 8300000, guid: 3fdf39e5699c132449da0a320c11c830, type: 3}
   usePitchShifting: 1
   preferCustomFretSounds: 1
   touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
@@ -2233,6 +2234,13 @@ MonoBehaviour:
   longPressThreshold: 0.2
   swipeThreshold: 50
   instrumentSwitchKey: 9
+  guqinSanYinKey: 49
+  guqinAnYinKey: 50
+  guqinFanYinKey: 51
+  pipaSanYinKey: 49
+  pipaAnYinKey: 50
+  pipaFanYinKey: 51
+  pipaStrumKey: 52
   showDebugRay: 1
   showDebugInfo: 1
 --- !u!4 &459033733
@@ -3190,7 +3198,7 @@ MonoBehaviour:
   stringIndex: 3
   basePitch: 60
   fretSounds: []
-  openStringSound: {fileID: 0}
+  openStringSound: {fileID: 8300000, guid: 8837ec3fe923c5848a07d154b30ad39f, type: 3}
   usePitchShifting: 1
   preferCustomFretSounds: 1
   touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 0}
@@ -3742,7 +3750,7 @@ MonoBehaviour:
   stringIndex: 2
   basePitch: 60
   fretSounds: []
-  openStringSound: {fileID: 8300000, guid: 3ceaa84d4838b704881a6bfd46515854, type: 3}
+  openStringSound: {fileID: 8300000, guid: a82cb9da14ccd144cb16f63ef203ffdb, type: 3}
   usePitchShifting: 1
   preferCustomFretSounds: 1
   touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
@@ -4184,7 +4192,7 @@ MonoBehaviour:
   stringIndex: 5
   basePitch: 60
   fretSounds: []
-  openStringSound: {fileID: 0}
+  openStringSound: {fileID: 8300000, guid: be28f18675a461b499291c0c244cd683, type: 3}
   usePitchShifting: 1
   preferCustomFretSounds: 1
   touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 0}
@@ -5031,7 +5039,7 @@ MonoBehaviour:
   stringIndex: 1
   basePitch: 60
   fretSounds: []
-  openStringSound: {fileID: 8300000, guid: fda38af9e6c7699419f3d3a0baaac3f2, type: 3}
+  openStringSound: {fileID: 8300000, guid: c68b74b8cea3b0046be0d6ddc1e1aa31, type: 3}
   usePitchShifting: 1
   preferCustomFretSounds: 1
   touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
@@ -5327,7 +5335,7 @@ MonoBehaviour:
   stringIndex: 6
   basePitch: 60
   fretSounds: []
-  openStringSound: {fileID: 0}
+  openStringSound: {fileID: 8300000, guid: ad8ce31805fa0f642afb7119876caddb, type: 3}
   usePitchShifting: 1
   preferCustomFretSounds: 1
   touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 0}
@@ -5976,6 +5984,7 @@ MonoBehaviour:
   useProceduralAudio: 1
   fretColliders: []
   createFretCollidersPerString: 0
+  currentTechnique: 1
   showDebug: 1
 --- !u!1 &1450031257
 GameObject:
@@ -6336,7 +6345,7 @@ MonoBehaviour:
   stringIndex: 2
   basePitch: 60
   fretSounds: []
-  openStringSound: {fileID: 0}
+  openStringSound: {fileID: 8300000, guid: e5b1ac234bbd77d4f91bd9efbc42e092, type: 3}
   usePitchShifting: 1
   preferCustomFretSounds: 1
   touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 0}
@@ -7356,7 +7365,7 @@ MonoBehaviour:
   stringIndex: 1
   basePitch: 60
   fretSounds: []
-  openStringSound: {fileID: 0}
+  openStringSound: {fileID: 8300000, guid: d9d67724636407c48856db74031fbc14, type: 3}
   usePitchShifting: 1
   preferCustomFretSounds: 1
   touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 0}
