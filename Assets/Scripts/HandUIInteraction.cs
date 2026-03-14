@@ -4,419 +4,256 @@ using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
 /// <summary>
-/// 手部UI交互系统 - 检测手部位置是否在UI按钮上并触发交互
+/// 手部 UI 交互 - 捏合手势点击 UI（按钮、翻页等），仅此功能。
 /// </summary>
 public class HandUIInteraction : MonoBehaviour
 {
     [Header("组件引用")]
-    [Tooltip("手势检测器")]
+    [Tooltip("手势检测器（捏合=点击）")]
     public HandGestureDetector gestureDetector;
 
-    [Tooltip("UI摄像机（用于UI交互，如果为空则使用主摄像机）")]
+    [Tooltip("UI 摄像机，为空则用主摄像机")]
     public Camera uiCamera;
 
     [Header("交互设置")]
-    [Tooltip("是否启用自动检测场景中的所有按钮")]
-    public bool autoDetectButtons = true;
-
-    [Tooltip("手动指定的按钮列表（如果autoDetectButtons为false）")]
-    public List<Button> targetButtons = new List<Button>();
-
-    [Tooltip("交互触发延迟（秒），避免频繁触发")]
-    [Range(0f, 1f)]
+    [Tooltip("捏合后触发点击的冷却时间（秒），防误触")]
+    [Range(0.1f, 1f)]
     public float interactionCooldown = 0.3f;
 
-    [Tooltip("手部位置检测半径（屏幕像素）")]
-    [Range(10f, 100f)]
-    public float detectionRadius = 30f;
+    [Tooltip("射线未命中时，用距离判定按钮的半径（像素）")]
+    [Range(10f, 80f)]
+    public float detectionRadius = 40f;
 
     [Header("状态")]
-    [Tooltip("当前交互的按钮")]
+    public bool isInteracting;
     public Button currentInteractingButton;
 
-    [Tooltip("是否正在交互")]
-    public bool isInteracting = false;
+    [Header("调试")]
+    [Tooltip("勾选后在 Console 打印捏合与点击信息，便于排查无反应")]
+    public bool showDebugLog = false;
 
-    private float lastInteractionTime = 0f;
-    private List<Button> allButtons = new List<Button>();
-    private GraphicRaycaster graphicRaycaster;
     private EventSystem eventSystem;
+    private List<Button> allButtons = new List<Button>();
+    private Dictionary<int, float> lastInteractionTimes = new Dictionary<int, float>();
+    private Dictionary<int, GameObject> currentInteractingByHand = new Dictionary<int, GameObject>();
 
     void Start()
     {
-        // 查找手势检测器
         if (gestureDetector == null)
-        {
             gestureDetector = FindObjectOfType<HandGestureDetector>();
-            if (gestureDetector == null)
-            {
-                Debug.LogWarning("HandUIInteraction: 未找到 HandGestureDetector");
-            }
-        }
+        if (gestureDetector == null)
+            Debug.LogWarning("HandUIInteraction: 未找到 HandGestureDetector");
 
-        // 查找UI摄像机
         if (uiCamera == null)
         {
-            Canvas canvas = FindObjectOfType<Canvas>();
-            if (canvas != null && canvas.renderMode == RenderMode.ScreenSpaceCamera)
-            {
-                uiCamera = canvas.worldCamera;
-            }
-            else
-            {
-                uiCamera = Camera.main;
-            }
+            Canvas c = FindObjectOfType<Canvas>();
+            uiCamera = (c != null && c.renderMode == RenderMode.ScreenSpaceCamera) ? c.worldCamera : Camera.main;
         }
 
-        // 查找EventSystem和GraphicRaycaster
         eventSystem = FindObjectOfType<EventSystem>();
         if (eventSystem == null)
-        {
-            Debug.LogWarning("HandUIInteraction: 场景中未找到 EventSystem，请添加 EventSystem 组件");
-        }
+            Debug.LogWarning("HandUIInteraction: 场景中需要 EventSystem，否则无法检测 UI 点击");
 
-        Canvas canvasComponent = FindObjectOfType<Canvas>();
-        if (canvasComponent != null)
-        {
-            graphicRaycaster = canvasComponent.GetComponent<GraphicRaycaster>();
-            if (graphicRaycaster == null)
-            {
-                graphicRaycaster = canvasComponent.gameObject.AddComponent<GraphicRaycaster>();
-            }
-        }
-
-        // 收集所有按钮
-        if (autoDetectButtons)
-        {
-            CollectAllButtons();
-        }
-        else
-        {
-            allButtons = new List<Button>(targetButtons);
-        }
+        CollectAllButtons();
     }
 
-    [Header("多手交互设置")]
-    [Tooltip("是否支持两只手同时交互")]
-    public bool allowMultipleHands = true;
-
-    [Tooltip("当前交互的按钮（每只手）")]
-    public Dictionary<int, Button> currentInteractingButtons = new Dictionary<int, Button>();
-
-    [Tooltip("每只手的最后交互时间")]
-    private Dictionary<int, float> lastInteractionTimes = new Dictionary<int, float>();
+    private void CollectAllButtons()
+    {
+        allButtons.Clear();
+        Button[] buttons = FindObjectsOfType<Button>(true);
+        allButtons.AddRange(buttons);
+    }
 
     void Update()
     {
-        if (gestureDetector == null || gestureDetector.clenchedHandCount == 0)
+        if (gestureDetector == null || gestureDetector.pinchCount == 0)
         {
             currentInteractingButton = null;
-            currentInteractingButtons.Clear();
+            currentInteractingByHand.Clear();
             isInteracting = false;
             return;
         }
 
-        // 检测所有握拳手的位置是否在按钮上
-        CheckAllHandsInteraction();
+        CheckPinchInteraction();
     }
 
-    /// <summary>
-    /// 收集场景中的所有按钮
-    /// </summary>
-    private void CollectAllButtons()
+    private void CheckPinchInteraction()
     {
-        allButtons.Clear();
-        Button[] buttons = FindObjectsOfType<Button>(true); // true 表示包括未激活的
-        allButtons.AddRange(buttons);
-        Debug.Log($"HandUIInteraction: 找到 {allButtons.Count} 个按钮");
-    }
-
-    /// <summary>
-    /// 检查所有手的按钮交互
-    /// </summary>
-    private void CheckAllHandsInteraction()
-    {
-        // 清理不再握拳的手的交互状态
-        List<int> handsToRemove = new List<int>();
-        foreach (var handIndex in currentInteractingButtons.Keys)
+        // 清理已松开的捏合手
+        List<int> toRemove = new List<int>();
+        foreach (var handIndex in currentInteractingByHand.Keys)
         {
-            bool handStillClenched = false;
-            foreach (var hand in gestureDetector.clenchedHands)
+            bool stillPinching = false;
+            foreach (var h in gestureDetector.pinchHands)
             {
-                if (hand.handIndex == handIndex)
-                {
-                    handStillClenched = true;
-                    break;
-                }
+                if (h.handIndex == handIndex) { stillPinching = true; break; }
             }
-            if (!handStillClenched)
-            {
-                handsToRemove.Add(handIndex);
-            }
+            if (!stillPinching) toRemove.Add(handIndex);
         }
-        foreach (var handIndex in handsToRemove)
+        foreach (var i in toRemove)
         {
-            currentInteractingButtons.Remove(handIndex);
-            lastInteractionTimes.Remove(handIndex);
+            currentInteractingByHand.Remove(i);
+            lastInteractionTimes.Remove(i);
         }
 
-        // 检查每只握拳手
-        foreach (var handInfo in gestureDetector.clenchedHands)
+        foreach (var hand in gestureDetector.pinchHands)
         {
-            int handIndex = handInfo.handIndex;
+            int handIndex = hand.handIndex;
+            if (lastInteractionTimes.TryGetValue(handIndex, out float t) && Time.time - t < interactionCooldown)
+                continue;
 
-            // 检查冷却时间
-            if (lastInteractionTimes.ContainsKey(handIndex))
+            GameObject hit = RaycastUI(hand.pinchScreenPosition);
+            if (hit != null)
             {
-                if (Time.time - lastInteractionTimes[handIndex] < interactionCooldown)
+                if (!currentInteractingByHand.ContainsKey(handIndex) || currentInteractingByHand[handIndex] != hit)
                 {
-                    continue;
-                }
-            }
-
-            // 检测手部位置是否在按钮上
-            Button hitButton = CheckButtonInteraction(handInfo.centerScreenPosition);
-
-            if (hitButton != null)
-            {
-                // 检查这只手是否已经在交互这个按钮
-                if (!currentInteractingButtons.ContainsKey(handIndex) || 
-                    currentInteractingButtons[handIndex] != hitButton)
-                {
-                    // 触发按钮点击
-                    TriggerButtonClick(hitButton);
-                    currentInteractingButtons[handIndex] = hitButton;
+                    TriggerClick(hit, hand.pinchScreenPosition);
+                    currentInteractingByHand[handIndex] = hit;
                     lastInteractionTimes[handIndex] = Time.time;
                     isInteracting = true;
-
-                    // 兼容旧接口（第一只手）
-                    if (handIndex == 0)
-                    {
-                        currentInteractingButton = hitButton;
-                    }
+                    currentInteractingButton = hit.GetComponent<Button>();
+                    if (showDebugLog)
+                        Debug.Log($"[手势UI] 点击: {hit.name}");
                 }
             }
             else
             {
-                // 如果这只手不再在按钮上，清除状态
-                if (currentInteractingButtons.ContainsKey(handIndex))
+                Button nearest = FindNearestButton(hand.pinchScreenPosition);
+                if (nearest != null)
                 {
-                    currentInteractingButtons.Remove(handIndex);
-                    if (handIndex == 0)
+                    if (!currentInteractingByHand.ContainsKey(handIndex) || currentInteractingByHand[handIndex] != nearest.gameObject)
                     {
-                        currentInteractingButton = null;
+                        TriggerButtonClick(nearest);
+                        currentInteractingByHand[handIndex] = nearest.gameObject;
+                        lastInteractionTimes[handIndex] = Time.time;
+                        isInteracting = true;
+                        currentInteractingButton = nearest;
+                        if (showDebugLog)
+                            Debug.Log($"[手势UI] 点击(备用): {nearest.name}");
                     }
+                }
+                else
+                {
+                    if (showDebugLog && Time.frameCount % 90 == 0)
+                        Debug.Log($"[手势UI] 未命中 UI 屏幕位置:({hand.pinchScreenPosition.x:F0},{hand.pinchScreenPosition.y:F0}) 请确认有 EventSystem、Canvas 带 GraphicRaycaster、按钮 Raycast Target 开启");
+                    if (currentInteractingByHand.ContainsKey(handIndex))
+                        currentInteractingByHand.Remove(handIndex);
                 }
             }
         }
 
-        // 更新总体交互状态
-        isInteracting = currentInteractingButtons.Count > 0;
+        isInteracting = currentInteractingByHand.Count > 0;
     }
 
-    /// <summary>
-    /// 检查指定位置的按钮交互
-    /// </summary>
-    private Button CheckButtonInteraction(Vector2 screenPos)
+    /// <summary>只与可点击的 UI 交互；仅命中 Button/Toggle/带点击事件的 UI 才返回，不处理普通 GameObject</summary>
+    private GameObject RaycastUI(Vector2 screenPos)
     {
-        // 方法1：使用射线检测
-        Button hitButton = RaycastButton(screenPos);
-        
-        // 方法2：直接计算距离（备用方法）
-        if (hitButton == null)
-        {
-            hitButton = FindNearestButton(screenPos);
-        }
-
-        return hitButton;
+        if (eventSystem == null) return null;
+        var pointerData = new PointerEventData(eventSystem) { position = screenPos };
+        var results = new List<RaycastResult>();
+        eventSystem.RaycastAll(pointerData, results);
+        return GetFirstClickableFromResults(results);
     }
 
-    /// <summary>
-    /// 使用射线检测按钮
-    /// </summary>
-    private Button RaycastButton(Vector2 screenPosition)
+    /// <summary>从射线结果里取第一个可点击的物体；若命中 Body 等遮挡，会沿层级找到背后的 Button</summary>
+    private GameObject GetFirstClickableFromResults(List<RaycastResult> results)
     {
-        if (eventSystem == null || graphicRaycaster == null)
+        if (eventSystem == null) return null;
+        foreach (var r in results)
         {
-            return null;
+            if (r.gameObject == null) continue;
+            GameObject handler = ExecuteEvents.GetEventHandler<IPointerClickHandler>(r.gameObject);
+            if (handler != null) return handler;
+            var btn = r.gameObject.GetComponent<Button>();
+            if (btn != null && btn.interactable) return r.gameObject;
+            var toggle = r.gameObject.GetComponent<Toggle>();
+            if (toggle != null && toggle.interactable) return r.gameObject;
         }
-
-        // 创建指针事件数据
-        PointerEventData pointerData = new PointerEventData(eventSystem);
-        pointerData.position = screenPosition;
-
-        // 执行射线检测
-        List<RaycastResult> results = new List<RaycastResult>();
-        graphicRaycaster.Raycast(pointerData, results);
-
-        // 查找第一个按钮
-        foreach (RaycastResult result in results)
-        {
-            Button button = result.gameObject.GetComponent<Button>();
-            if (button != null && button.interactable)
-            {
-                return button;
-            }
-        }
-
         return null;
     }
 
-    /// <summary>
-    /// 查找距离手部位置最近的按钮（备用方法）
-    /// </summary>
-    private Button FindNearestButton(Vector2 screenPosition)
+    /// <summary>对命中的物体触发点击（Button / Toggle / 任意 IPointerClickHandler）</summary>
+    private void TriggerClick(GameObject target, Vector2 screenPos)
     {
-        Button nearestButton = null;
-        float minDistance = detectionRadius;
-
-        foreach (Button button in allButtons)
+        if (target == null) return;
+        Button btn = target.GetComponent<Button>();
+        if (btn != null && btn.interactable)
         {
-            if (button == null || !button.interactable || !button.gameObject.activeInHierarchy)
-            {
-                continue;
-            }
-
-            // 获取按钮的屏幕位置
-            RectTransform rectTransform = button.GetComponent<RectTransform>();
-            if (rectTransform == null)
-            {
-                continue;
-            }
-
-            Vector3[] worldCorners = new Vector3[4];
-            rectTransform.GetWorldCorners(worldCorners);
-
-            // 计算按钮中心点的屏幕坐标
-            Vector3 buttonCenter = (worldCorners[0] + worldCorners[2]) / 2f;
-            Vector2 buttonScreenPos = RectTransformUtility.WorldToScreenPoint(uiCamera, buttonCenter);
-
-            // 计算距离
-            float distance = Vector2.Distance(screenPosition, buttonScreenPos);
-
-            // 检查是否在按钮范围内
-            bool isInsideButton = IsPointInsideRect(screenPosition, worldCorners, uiCamera);
-
-            if (isInsideButton || distance < minDistance)
-            {
-                minDistance = distance;
-                nearestButton = button;
-            }
+            btn.onClick.Invoke();
+            if (showDebugLog) Debug.Log($"[手势UI] 已触发 Button: {target.name}");
+            return;
         }
-
-        return nearestButton;
+        Toggle toggle = target.GetComponent<Toggle>();
+        if (toggle != null && toggle.interactable)
+        {
+            toggle.isOn = !toggle.isOn;
+            if (showDebugLog) Debug.Log($"[手势UI] 已切换 Toggle: {target.name}");
+            return;
+        }
+        if (eventSystem != null)
+        {
+            var pointerData = new PointerEventData(eventSystem) { position = screenPos };
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerClickHandler);
+            if (showDebugLog) Debug.Log($"[手势UI] 已发送点击事件: {target.name}");
+        }
     }
 
-    /// <summary>
-    /// 检查点是否在矩形内
-    /// </summary>
-    private bool IsPointInsideRect(Vector2 screenPoint, Vector3[] worldCorners, Camera camera)
-    {
-        // 将世界坐标转换为屏幕坐标
-        Vector2[] screenCorners = new Vector2[4];
-        for (int i = 0; i < 4; i++)
-        {
-            screenCorners[i] = RectTransformUtility.WorldToScreenPoint(camera, worldCorners[i]);
-        }
-
-        // 使用射线法判断点是否在多边形内
-        return IsPointInPolygon(screenPoint, screenCorners);
-    }
-
-    /// <summary>
-    /// 使用射线法判断点是否在多边形内
-    /// </summary>
-    private bool IsPointInPolygon(Vector2 point, Vector2[] polygon)
-    {
-        int intersections = 0;
-        for (int i = 0; i < polygon.Length; i++)
-        {
-            Vector2 p1 = polygon[i];
-            Vector2 p2 = polygon[(i + 1) % polygon.Length];
-
-            if (RayIntersectsSegment(point, p1, p2))
-            {
-                intersections++;
-            }
-        }
-        return (intersections % 2) == 1;
-    }
-
-    /// <summary>
-    /// 检查射线是否与线段相交
-    /// </summary>
-    private bool RayIntersectsSegment(Vector2 point, Vector2 segStart, Vector2 segEnd)
-    {
-        if (segStart.y > segEnd.y)
-        {
-            Vector2 temp = segStart;
-            segStart = segEnd;
-            segEnd = temp;
-        }
-
-        if (point.y < segStart.y || point.y > segEnd.y)
-        {
-            return false;
-        }
-
-        if (point.x > Mathf.Max(segStart.x, segEnd.x))
-        {
-            return false;
-        }
-
-        if (point.x < Mathf.Min(segStart.x, segEnd.x))
-        {
-            return true;
-        }
-
-        float red = (point.y - segStart.y) / (segEnd.y - segStart.y);
-        float blue = (point.x - segStart.x) / (segEnd.x - segStart.x);
-        return blue >= red;
-    }
-
-    /// <summary>
-    /// 触发按钮点击
-    /// </summary>
     private void TriggerButtonClick(Button button)
     {
         if (button != null && button.interactable)
-        {
             button.onClick.Invoke();
-            Debug.Log($"HandUIInteraction: 触发按钮点击 - {button.name}");
-        }
     }
 
-    /// <summary>
-    /// 手动添加按钮到检测列表
-    /// </summary>
-    public void AddButton(Button button)
+    private Button FindNearestButton(Vector2 screenPosition)
     {
-        if (button != null && !allButtons.Contains(button))
+        Camera cam = uiCamera != null ? uiCamera : Camera.main;
+        if (cam == null) return null;
+
+        Button nearest = null;
+        float minDist = detectionRadius;
+        foreach (Button b in allButtons)
         {
-            allButtons.Add(button);
+            if (b == null || !b.interactable || !b.gameObject.activeInHierarchy) continue;
+            RectTransform rt = b.GetComponent<RectTransform>();
+            if (rt == null) continue;
+            Vector3[] corners = new Vector3[4];
+            rt.GetWorldCorners(corners);
+            Vector3 center = (corners[0] + corners[2]) * 0.5f;
+            Vector2 btnScreen = RectTransformUtility.WorldToScreenPoint(cam, center);
+            float d = Vector2.Distance(screenPosition, btnScreen);
+            if (IsPointInsideRect(screenPosition, corners, cam) || d < minDist)
+            {
+                minDist = d;
+                nearest = b;
+            }
         }
+        return nearest;
     }
 
-    /// <summary>
-    /// 手动移除按钮
-    /// </summary>
-    public void RemoveButton(Button button)
+    private static bool IsPointInsideRect(Vector2 screenPoint, Vector3[] worldCorners, Camera cam)
     {
-        if (allButtons.Contains(button))
-        {
-            allButtons.Remove(button);
-        }
+        if (cam == null) return false;
+        Vector2[] screenCorners = new Vector2[4];
+        for (int i = 0; i < 4; i++)
+            screenCorners[i] = RectTransformUtility.WorldToScreenPoint(cam, worldCorners[i]);
+        return IsPointInPolygon(screenPoint, screenCorners);
     }
 
-    /// <summary>
-    /// 刷新按钮列表
-    /// </summary>
+    private static bool IsPointInPolygon(Vector2 point, Vector2[] polygon)
+    {
+        int n = polygon.Length;
+        bool inside = false;
+        for (int i = 0, j = n - 1; i < n; j = i++)
+        {
+            if (((polygon[i].y > point.y) != (polygon[j].y > point.y)) &&
+                (point.x < (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) / (polygon[j].y - polygon[i].y) + polygon[i].x))
+                inside = !inside;
+        }
+        return inside;
+    }
+
     public void RefreshButtonList()
     {
-        if (autoDetectButtons)
-        {
-            CollectAllButtons();
-        }
+        CollectAllButtons();
     }
 }
-

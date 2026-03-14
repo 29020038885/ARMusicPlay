@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// 手势检测器 - 检测握拳手势（支持两只手）
+/// 手势检测器 - 仅检测捏合（拇指+食指尖靠拢），用于 UI 点击、翻页等。
 /// </summary>
 public class HandGestureDetector : MonoBehaviour
 {
@@ -10,224 +10,84 @@ public class HandGestureDetector : MonoBehaviour
     [Tooltip("手部特征点数据收集器")]
     public HandLandmarkDataCollector dataCollector;
 
-    [Header("手势检测参数")]
-    [Tooltip("指尖到手腕的最大距离阈值（归一化坐标），用于判断是否握拳")]
-    [Range(0.05f, 0.2f)]
-    public float fingerToWristDistanceThreshold = 0.12f;
-
-    [Tooltip("手掌中心到手腕的距离（用于计算手掌中心位置）")]
-    [Range(0.05f, 0.15f)]
-    public float palmCenterOffset = 0.08f;
+    [Header("捏合参数")]
+    [Tooltip("拇指尖与食指尖距离小于此值视为捏合")]
+    [Range(0.02f, 0.12f)]
+    public float pinchDistanceThreshold = 0.07f;
 
     [Header("状态输出")]
-    [Tooltip("检测到握拳的手的数量")]
-    public int clenchedHandCount = 0;
+    [Tooltip("捏合的手列表（用于 UI 点击）")]
+    public List<PinchHandInfo> pinchHands = new List<PinchHandInfo>();
 
-    [Tooltip("所有握拳手的信息列表")]
-    public List<ClenchedHandInfo> clenchedHands = new List<ClenchedHandInfo>();
+    private const int thumbTipIndex = 4;
+    private const int indexTipIndex = 8;
 
-    // 指尖特征点索引：拇指(4), 食指(8), 中指(12), 无名指(16), 小指(20)
-    private readonly int[] fingerTipIndices = { 4, 8, 12, 16, 20 };
-    private const int wristIndex = 0;
-    private const int middleFingerMCPIndex = 9; // 中指掌骨关节
-
-    /// <summary>
-    /// 握拳手的信息
-    /// </summary>
     [System.Serializable]
-    public class ClenchedHandInfo
+    public class PinchHandInfo
     {
         public int handIndex;
-        public string handedness; // "Left" or "Right"
-        public Vector3 centerPosition; // 归一化坐标
-        public Vector3 centerWorldPosition; // 世界坐标
-        public Vector2 centerScreenPosition; // 屏幕坐标
+        public string handedness;
+        public Vector2 pinchScreenPosition;
+        public Vector3 pinchWorldPosition;
     }
 
     void Start()
     {
         if (dataCollector == null)
-        {
             dataCollector = FindObjectOfType<HandLandmarkDataCollector>();
-            if (dataCollector == null)
-            {
-                Debug.LogWarning("HandGestureDetector: 未找到 HandLandmarkDataCollector");
-            }
-        }
+        if (dataCollector == null)
+            Debug.LogWarning("HandGestureDetector: 未找到 HandLandmarkDataCollector");
     }
 
     void Update()
     {
-        if (dataCollector == null || !dataCollector.hasHand)
-        {
-            clenchedHandCount = 0;
-            clenchedHands.Clear();
-            return;
-        }
+        pinchHands.Clear();
+        if (dataCollector == null || !dataCollector.hasHand) return;
 
-        DetectClenchedHands();
-    }
-
-    /// <summary>
-    /// 检测所有握拳的手
-    /// </summary>
-    private void DetectClenchedHands()
-    {
-        clenchedHands.Clear();
-        clenchedHandCount = 0;
-
-        // 遍历所有检测到的手
         for (int handIndex = 0; handIndex < dataCollector.handCount; handIndex++)
         {
-            if (IsHandClenched(handIndex))
+            if (!IsHandPinching(handIndex)) continue;
+
+            Vector3 thumbTip = dataCollector.GetLandmark(handIndex, thumbTipIndex);
+            Vector3 indexTip = dataCollector.GetLandmark(handIndex, indexTipIndex);
+            Vector3 pinchCenter = (thumbTip + indexTip) * 0.5f;
+
+            var info = new PinchHandInfo
             {
-                ClenchedHandInfo handInfo = new ClenchedHandInfo
-                {
-                    handIndex = handIndex,
-                    handedness = GetHandedness(handIndex)
-                };
-
-                CalculateHandCenter(handIndex, ref handInfo);
-                clenchedHands.Add(handInfo);
-                clenchedHandCount++;
-            }
-        }
-    }
-
-    /// <summary>
-    /// 检测指定手是否握拳
-    /// </summary>
-    private bool IsHandClenched(int handIndex)
-    {
-        Vector3 wrist = dataCollector.GetLandmark(handIndex, wristIndex);
-        int clenchedFingerCount = 0;
-
-        // 检查每个指尖是否接近手腕（握拳时指尖会靠近手腕）
-        for (int i = 0; i < fingerTipIndices.Length; i++)
-        {
-            Vector3 fingerTip = dataCollector.GetLandmark(handIndex, fingerTipIndices[i]);
-            
-            // 计算指尖到手腕的2D距离（忽略Z深度）
-            float distance2D = Vector2.Distance(
-                new Vector2(wrist.x, wrist.y),
-                new Vector2(fingerTip.x, fingerTip.y)
-            );
-
-            // 如果指尖距离手腕很近，说明该手指是弯曲的（握拳状态）
-            if (distance2D <= fingerToWristDistanceThreshold)
+                handIndex = handIndex,
+                handedness = GetHandedness(handIndex)
+            };
+            info.pinchScreenPosition = new Vector2(pinchCenter.x * Screen.width, (1f - pinchCenter.y) * Screen.height);
+            if (dataCollector.targetCamera != null)
             {
-                clenchedFingerCount++;
+                Vector3 screenPos = new Vector3(info.pinchScreenPosition.x, info.pinchScreenPosition.y, dataCollector.handDepth);
+                info.pinchWorldPosition = dataCollector.targetCamera.ScreenToWorldPoint(screenPos);
             }
+            pinchHands.Add(info);
         }
-
-        // 如果至少4个手指（80%）都接近手腕，认为是握拳
-        // 拇指可能比较特殊，所以要求至少4个手指
-        return clenchedFingerCount >= 4;
     }
 
-    /// <summary>
-    /// 计算握拳手的中心位置
-    /// </summary>
-    private void CalculateHandCenter(int handIndex, ref ClenchedHandInfo handInfo)
+    private bool IsHandPinching(int handIndex)
     {
-        Vector3 wrist = dataCollector.GetLandmark(handIndex, wristIndex);
-        Vector3 middleFingerMCP = dataCollector.GetLandmark(handIndex, middleFingerMCPIndex);
-
-        // 手掌中心大约在手腕和中指掌骨关节之间
-        Vector3 palmCenter = Vector3.Lerp(wrist, middleFingerMCP, 0.5f);
-        handInfo.centerPosition = palmCenter;
-
-        // 转换为世界坐标
-        if (dataCollector.targetCamera != null)
-        {
-            Vector3 screenPos = new Vector3(
-                palmCenter.x * Screen.width,
-                (1 - palmCenter.y) * Screen.height,
-                dataCollector.handDepth
-            );
-            handInfo.centerWorldPosition = dataCollector.targetCamera.ScreenToWorldPoint(screenPos);
-        }
-
-        // 转换为屏幕坐标
-        handInfo.centerScreenPosition = new Vector2(
-            palmCenter.x * Screen.width,
-            (1 - palmCenter.y) * Screen.height
-        );
+        Vector3 thumbTip = dataCollector.GetLandmark(handIndex, thumbTipIndex);
+        Vector3 indexTip = dataCollector.GetLandmark(handIndex, indexTipIndex);
+        float dist = Vector2.Distance(new Vector2(thumbTip.x, thumbTip.y), new Vector2(indexTip.x, indexTip.y));
+        return dist <= pinchDistanceThreshold;
     }
 
-    /// <summary>
-    /// 获取指定手的左右手信息
-    /// </summary>
     private string GetHandedness(int handIndex)
     {
-        // 从 dataCollector 获取 handedness 信息
-        // 这里简化处理，实际应该从 HandLandmarkerResult 中获取
         if (handIndex == 0)
-        {
-            return dataCollector.firstHandHandedness;
-        }
-        // 对于第二只手，可以根据位置判断（左手通常在屏幕左侧）
-        // 或者从 HandLandmarkerResult 中获取完整信息
+            return dataCollector.firstHandHandedness ?? "";
         return "Unknown";
     }
 
-    /// <summary>
-    /// 获取第一只握拳手的中心位置（屏幕坐标）- 兼容旧接口
-    /// </summary>
-    public Vector2 GetFingersCenterScreen()
-    {
-        if (clenchedHands.Count > 0)
-        {
-            return clenchedHands[0].centerScreenPosition;
-        }
-        return Vector2.zero;
-    }
+    public int pinchCount => pinchHands != null ? pinchHands.Count : 0;
 
-    /// <summary>
-    /// 获取第一只握拳手的中心位置（归一化坐标）
-    /// </summary>
-    public Vector3 GetFingersCenterNormalized()
+    public Vector2 GetFirstPinchScreen()
     {
-        if (clenchedHands.Count > 0)
-        {
-            return clenchedHands[0].centerPosition;
-        }
-        return Vector3.zero;
-    }
-
-    /// <summary>
-    /// 获取第一只握拳手的中心位置（世界坐标）
-    /// </summary>
-    public Vector3 GetFingersCenterWorld()
-    {
-        if (clenchedHands.Count > 0)
-        {
-            return clenchedHands[0].centerWorldPosition;
-        }
-        return Vector3.zero;
-    }
-
-    /// <summary>
-    /// 检查是否有握拳手势（兼容旧接口）
-    /// </summary>
-    public bool isFingersTogether
-    {
-        get { return clenchedHandCount > 0; }
-    }
-
-    /// <summary>
-    /// 获取指定手的中心位置（屏幕坐标）
-    /// </summary>
-    public Vector2 GetHandCenterScreen(int handIndex)
-    {
-        foreach (var hand in clenchedHands)
-        {
-            if (hand.handIndex == handIndex)
-            {
-                return hand.centerScreenPosition;
-            }
-        }
+        if (pinchHands != null && pinchHands.Count > 0)
+            return pinchHands[0].pinchScreenPosition;
         return Vector2.zero;
     }
 }
-

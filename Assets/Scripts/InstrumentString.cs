@@ -78,6 +78,8 @@ public class InstrumentString : MonoBehaviour
     private Vector3 colliderOriginalScale; // 碰撞琴弦的原始缩放（如果需要同时震动）
     private Renderer visualRenderer; // 模型琴弦的 Renderer
     private Coroutine currentVibrationCoroutine; // 当前正在运行的震动协程
+    /// <summary>拨弦时的基础音高倍率（不含推拉），用于拨弦后推拉时实时改音高</summary>
+    private float sustainBasePitchMultiplier = 1f;
 
     void Start()
     {
@@ -236,7 +238,16 @@ public class InstrumentString : MonoBehaviour
     /// </summary>
     public void PluckString()
     {
-        Debug.Log($"🎵 PluckString 被调用！弦 {stringIndex}");
+        PluckStringWithBend(0f);
+    }
+
+    /// <summary>
+    /// 拨弦并施加推拉弦导致的音高偏移（同一品上推拉，bendSemitones 为正=推高，负=拉低）
+    /// </summary>
+    /// <param name="bendSemitones">推拉导致的半音偏移，如 0.5 表示约半音，-0.5 表示略低</param>
+    public void PluckStringWithBend(float bendSemitones)
+    {
+        Debug.Log($"🎵 PluckString 被调用！弦 {stringIndex}" + (Mathf.Abs(bendSemitones) > 0.01f ? $" 推拉 {bendSemitones:F2} 半音" : ""));
         
         // 选择要播放的音频
         AudioClip clipToPlay = null;
@@ -294,11 +305,13 @@ public class InstrumentString : MonoBehaviour
             audioSource.spatialBlend = 0.5f;
         }
 
-        // 播放声音
+        // 播放声音（拨弦时记下基础音高，拨弦后推拉可实时改音高）
         if (clipToPlay != null && audioSource != null)
         {
+            sustainBasePitchMultiplier = pitchShift;
             audioSource.clip = clipToPlay;
-            audioSource.pitch = pitchShift; // 设置音高
+            float bendMult = Mathf.Pow(2f, bendSemitones / 12f);
+            audioSource.pitch = pitchShift * bendMult;
             audioSource.volume = 1.0f;
             audioSource.Play();
             isPlaying = true;
@@ -322,6 +335,37 @@ public class InstrumentString : MonoBehaviour
                     $"\n  提示：勾选 usePitchShifting 并设置 openStringSound 即可自动生成品位音");
             }
         }
+    }
+
+    /// <summary>
+    /// 拨弦后推拉：在持续发音期间根据当前推拉量实时更新音高（真实奏法：先拨弦，再推拉）
+    /// </summary>
+    public void UpdateSustainBend(float bendSemitones)
+    {
+        if (audioSource != null && audioSource.isPlaying)
+        {
+            float bendMult = Mathf.Pow(2f, Mathf.Clamp(bendSemitones, -2f, 2f) / 12f);
+            audioSource.pitch = sustainBasePitchMultiplier * bendMult;
+        }
+    }
+
+    /// <summary>
+    /// 拨弦后按品/推拉：在持续发音期间用「当前」按品与推拉对应的总音高倍率更新（先弹弦后按品，音也会变成对应的音）
+    /// </summary>
+    /// <param name="totalPitchMultiplier">当前应有的总音高倍率（按品+推拉已算好）</param>
+    public void UpdateSustainPitch(float totalPitchMultiplier)
+    {
+        if (audioSource != null && audioSource.isPlaying)
+            audioSource.pitch = Mathf.Clamp(totalPitchMultiplier, 0.5f, 4f);
+    }
+
+    /// <summary>
+    /// 根据品位计算音高倍率（空弦=1，第 n 品 = 2^((n+1)/12)），供控制器在「拨弦后按品」时算总音高用
+    /// </summary>
+    public float GetPitchMultiplierForFret(int fretIndex)
+    {
+        if (fretIndex < 0) return 1f;
+        return Mathf.Pow(2f, (fretIndex + 1) / 12f);
     }
 
     /// <summary>
