@@ -1,80 +1,112 @@
 using UnityEngine;
+using System.Collections;
+
+#if UNITY_ANDROID
+using UnityEngine.Android;
+#endif
 
 /// <summary>
-/// 手部交互管理器 - 只负责串联「手部数据 → 手势检测 → UI 点击」，便于一键配置。
+/// 手部交互管理器 - 负责权限申请 + 启动摄像头 + 手势系统
 /// </summary>
 public class HandInteractionManager : MonoBehaviour
 {
-    [Header("组件引用")]
-    public HandLandmarkDataCollector dataCollector;
-    public HandGestureDetector gestureDetector;
-    public HandUIInteraction uiInteraction;
+[Header("组件引用")]
+public HandLandmarkDataCollector dataCollector;
+public HandGestureDetector gestureDetector;
+public HandUIInteraction uiInteraction;
 
-    [Tooltip("是否在 Start 时自动查找/创建上述组件")]
-    public bool autoSetup = true;
+[Header("自动设置")]
+public bool autoSetup = true;
 
-    [Header("调试")]
-    [Tooltip("是否在屏幕上显示捏合状态")]
-    public bool showDebugGUI = true;
+[Header("摄像头控制")]
+public bool startCameraOnStart = true;
 
-    void Start()
+void Start()
+{
+    if (autoSetup)
+        SetupComponents();
+
+    if (startCameraOnStart && dataCollector != null)
     {
-        if (autoSetup)
-            SetupComponents();
+        StartCoroutine(InitCameraRoutine());
+    }
+}
+
+void SetupComponents()
+{
+    if (dataCollector == null)
+        dataCollector = FindObjectOfType<HandLandmarkDataCollector>();
+
+    if (gestureDetector == null)
+        gestureDetector = FindObjectOfType<HandGestureDetector>();
+
+    if (uiInteraction == null)
+        uiInteraction = FindObjectOfType<HandUIInteraction>();
+
+    if (gestureDetector != null && gestureDetector.dataCollector == null)
+        gestureDetector.dataCollector = dataCollector;
+
+    if (uiInteraction != null && uiInteraction.gestureDetector == null)
+        uiInteraction.gestureDetector = gestureDetector;
+}
+
+IEnumerator InitCameraRoutine()
+{
+    Debug.Log("开始初始化摄像头...");
+
+#if UNITY_ANDROID
+// 1 申请权限
+if (!Permission.HasUserAuthorizedPermission(Permission.Camera))
+{
+Debug.Log("请求 Camera 权限...");
+Permission.RequestUserPermission(Permission.Camera);
+
+        // 等待用户操作
+        yield return new WaitForSeconds(1.5f);
     }
 
-    [ContextMenu("自动设置组件")]
-    public void SetupComponents()
+
+#endif
+
+    // 2 再检查 Unity Webcam 权限
+    if (!Application.HasUserAuthorization(UserAuthorization.WebCam))
     {
-        if (dataCollector == null)
-        {
-            dataCollector = FindObjectOfType<HandLandmarkDataCollector>();
-            if (dataCollector == null)
-            {
-                var go = new GameObject("HandLandmarkDataCollector");
-                dataCollector = go.AddComponent<HandLandmarkDataCollector>();
-            }
-        }
-
-        if (gestureDetector == null)
-        {
-            gestureDetector = FindObjectOfType<HandGestureDetector>();
-            if (gestureDetector == null)
-            {
-                var go = new GameObject("HandGestureDetector");
-                gestureDetector = go.AddComponent<HandGestureDetector>();
-            }
-        }
-        if (gestureDetector != null && gestureDetector.dataCollector == null)
-            gestureDetector.dataCollector = dataCollector;
-
-        if (uiInteraction == null)
-        {
-            uiInteraction = FindObjectOfType<HandUIInteraction>();
-            if (uiInteraction == null)
-            {
-                var go = new GameObject("HandUIInteraction");
-                uiInteraction = go.AddComponent<HandUIInteraction>();
-            }
-        }
-        if (uiInteraction != null && uiInteraction.gestureDetector == null)
-            uiInteraction.gestureDetector = gestureDetector;
+        Debug.Log("Unity 请求 WebCam 权限...");
+        yield return Application.RequestUserAuthorization(UserAuthorization.WebCam);
     }
 
-    void OnGUI()
-    {
-        if (!showDebugGUI || gestureDetector == null || uiInteraction == null) return;
+    // 3 检测摄像头设备
+    var devices = WebCamTexture.devices;
 
-        GUILayout.BeginArea(new Rect(10, 10, 280, 120));
-        GUILayout.Box("手势 UI 状态");
-        GUILayout.Label(gestureDetector.pinchCount > 0
-            ? $"捏合: {gestureDetector.pinchCount} 只"
-            : "捏合: 0");
-        if (gestureDetector.pinchCount > 0 && gestureDetector.pinchHands.Count > 0)
-            GUILayout.Label($"  位置: ({gestureDetector.pinchHands[0].pinchScreenPosition.x:F0}, {gestureDetector.pinchHands[0].pinchScreenPosition.y:F0})");
-        GUILayout.Label(uiInteraction.isInteracting && uiInteraction.currentInteractingButton != null
-            ? $"点击: {uiInteraction.currentInteractingButton.name}"
-            : "点击: 无");
-        GUILayout.EndArea();
+    Debug.Log("检测到摄像头数量: " + devices.Length);
+
+    foreach (var cam in devices)
+    {
+        Debug.Log("Camera Device: " + cam.name);
     }
+
+    if (devices.Length == 0)
+    {
+        Debug.LogError("没有检测到手机摄像头！");
+        yield break;
+    }
+
+    // 4 启动 MediaPipe
+    Debug.Log("启动手势摄像头...");
+
+    dataCollector.StartCamera();
+}
+
+public void EnableHandCamera()
+{
+    if (dataCollector != null)
+        dataCollector.StartCamera();
+}
+
+public void DisableHandCamera()
+{
+    if (dataCollector != null)
+        dataCollector.StopCamera();
+}
+
 }

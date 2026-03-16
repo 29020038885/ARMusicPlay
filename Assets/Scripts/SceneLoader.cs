@@ -14,6 +14,10 @@ public class SceneLoader : MonoBehaviour
     [Tooltip("UI 场景的名称（返回主界面用）")]
     public string uiSceneName = "UIpaper";
 
+    [Header("手势摄像头控制（可选）")]
+    [Tooltip("当前场景中的 HandInteractionManager。若指定，在切换场景前会关闭手势摄像头。")]
+    public HandInteractionManager handInteractionManager;
+
     /// <summary>
     /// 加载弹奏场景（给「开始弹奏」等按钮用）
     /// </summary>
@@ -40,6 +44,13 @@ public class SceneLoader : MonoBehaviour
             Debug.LogWarning("SceneLoader: 场景名为空");
             return;
         }
+
+        // 离开当前场景前，如有手势交互管理器，则先关闭摄像头
+        if (handInteractionManager != null)
+        {
+            handInteractionManager.DisableHandCamera();
+        }
+
         SceneManager.LoadScene(sceneName);
     }
 
@@ -48,6 +59,11 @@ public class SceneLoader : MonoBehaviour
     /// </summary>
     public void LoadSceneByIndex(int buildIndex)
     {
+        if (handInteractionManager != null)
+        {
+            handInteractionManager.DisableHandCamera();
+        }
+
         SceneManager.LoadScene(buildIndex);
     }
 }
