@@ -36,6 +36,10 @@ public class InstrumentInputManager : MonoBehaviour
     [Tooltip("切换乐器时是否自动隐藏未激活的乐器物体（推荐开启）")]
     public bool toggleInstrumentGameObjectsOnSwitch = true;
 
+    [Header("音量面板联动（可选）")]
+    [Tooltip("可选：技术演示用每弦音量面板脚本。若指定，在切换乐器时会同步内部激活乐器与滑块数据。")]
+    public InstrumentVolumePanel volumePanel;
+
     [Header("交互模式")]
     [Tooltip("当前激活的乐器：0-古琴，1-琵琶")]
     public int activeInstrument = 0;
@@ -84,6 +88,8 @@ public class InstrumentInputManager : MonoBehaviour
     private Dictionary<int, Vector2> touchStartOnString = new Dictionary<int, Vector2>();
     /// <summary>推拉：按品指按下品位时的锚点，位移用于计算推拉量（半音）</summary>
     private Dictionary<int, Vector2> touchFretAnchor = new Dictionary<int, Vector2>();
+    /// <summary>记录每个触点上一帧命中的弦索引，用于“滑到新弦时自动触发一次拨弦”</summary>
+    private Dictionary<int, int> touchLastStringIndex = new Dictionary<int, int>();
     [Tooltip("推拉：屏幕像素位移多少视为 1 半音（越大越不敏感）")]
     public float bendPixelsPerSemitone = 80f;
 
@@ -120,6 +126,11 @@ public class InstrumentInputManager : MonoBehaviour
             pipaController = FindObjectOfType<PipaController>();
         }
 
+        if (volumePanel == null)
+        {
+            volumePanel = FindObjectOfType<InstrumentVolumePanel>();
+        }
+
         if (showDebugInfo)
         {
             Debug.Log($"InstrumentInputManager: 初始化完成，输入模式: {(useTouchInput ? "触摸" : "鼠标")}");
@@ -127,6 +138,10 @@ public class InstrumentInputManager : MonoBehaviour
 
         // 启动时按 activeInstrument 同步一次显示状态
         ApplyInstrumentVisibility(activeInstrument);
+        if (volumePanel != null)
+        {
+            volumePanel.OnInstrumentChanged(activeInstrument);
+        }
     }
 
     void Update()
@@ -270,9 +285,8 @@ public class InstrumentInputManager : MonoBehaviour
     void HandlePipaTouchMultiFinger()
     {
         RaycastHit hit;
-        // 第一遍：只更新 touchToFretHold / touchFretAnchor / touchStartOnString，并收集本帧要触发的拨弦/扫弦
+        // 第一遍：只更新 touchToFretHold / touchFretAnchor / touchLastStringIndex，并收集本帧要触发的拨弦
         var pluckRay = (Ray?)null;
-        var strumUpward = (bool?)null;
         foreach (Touch t in Input.touches)
         {
             if (IsPointerOverUITouch(t.fingerId)) continue;
@@ -282,20 +296,13 @@ public class InstrumentInputManager : MonoBehaviour
             var str = hit.collider.GetComponent<InstrumentString>();
             if (str != null)
             {
-                if (t.phase == TouchPhase.Began)
-                    touchStartOnString[t.fingerId] = t.position;
-                else if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled)
+                // 触碰到弦的瞬间就触发拨弦；若手指在屏幕上滑动并跨到另一根弦，也触发一次新弦的拨弦
+                int lastIndex = -1;
+                touchLastStringIndex.TryGetValue(t.fingerId, out lastIndex);
+                if ((t.phase == TouchPhase.Began || t.phase == TouchPhase.Moved) && str.stringIndex != lastIndex)
                 {
-                    if (touchStartOnString.TryGetValue(t.fingerId, out Vector2 start))
-                    {
-                        touchStartOnString.Remove(t.fingerId);
-                        float dist = Vector2.Distance(start, t.position);
-                        Vector2 dir = (t.position - start).normalized;
-                        if (dist > swipeThreshold && Mathf.Abs(dir.y) > 0.5f)
-                            strumUpward = dir.y > 0;
-                        else
-                            pluckRay = GetRayFromScreenPosition(t.position);
-                    }
+                    pluckRay = ray;
+                    touchLastStringIndex[t.fingerId] = str.stringIndex;
                 }
                 continue;
             }
@@ -319,6 +326,7 @@ public class InstrumentInputManager : MonoBehaviour
                 touchToFretHold.Remove(t.fingerId);
                 touchStartOnString.Remove(t.fingerId);
                 touchFretAnchor.Remove(t.fingerId);
+                touchLastStringIndex.Remove(t.fingerId);
             }
         }
         // 先写入控制器：当前帧的按品与推拉量，这样拨弦时能用到“先按品再拨弦”的正确状态
@@ -335,7 +343,6 @@ public class InstrumentInputManager : MonoBehaviour
                     pipaController.SetBendAmount(kv.Value.stringIndex, (tt.position.y - anchor.y) / bendPixelsPerSemitone);
             }
         }
-        if (strumUpward.HasValue) { pipaController.StrumStrings(strumUpward.Value); if (showDebugInfo) Debug.Log("[触控] 琵琶扫弦"); }
         if (pluckRay.HasValue) pipaController.HandlePluckWithLiveFret(pluckRay.Value);
     }
 
@@ -353,8 +360,14 @@ public class InstrumentInputManager : MonoBehaviour
             var str = hit.collider.GetComponent<InstrumentString>();
             if (str != null)
             {
-                if (t.phase == TouchPhase.Began)
+                // 古琴同样支持：触碰到弦或滑到新弦时触发拨弦
+                int lastIndex = -1;
+                touchLastStringIndex.TryGetValue(t.fingerId, out lastIndex);
+                if ((t.phase == TouchPhase.Began || t.phase == TouchPhase.Moved) && str.stringIndex != lastIndex)
+                {
                     pluckRay = ray;
+                    touchLastStringIndex[t.fingerId] = str.stringIndex;
+                }
                 continue;
             }
 
@@ -376,6 +389,7 @@ public class InstrumentInputManager : MonoBehaviour
             {
                 touchToFretHold.Remove(t.fingerId);
                 touchFretAnchor.Remove(t.fingerId);
+                touchLastStringIndex.Remove(t.fingerId);
             }
         }
         guqinController.ClearAllLiveFretHolds();
@@ -621,6 +635,11 @@ public class InstrumentInputManager : MonoBehaviour
         activeInstrument = index;
 
         ApplyInstrumentVisibility(activeInstrument);
+
+        if (volumePanel != null)
+        {
+            volumePanel.OnInstrumentChanged(activeInstrument);
+        }
 
         string instrumentName = activeInstrument == 0 ? "古琴" : "琵琶";
         Debug.Log($"激活乐器: {instrumentName}");

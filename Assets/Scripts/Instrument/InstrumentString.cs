@@ -20,6 +20,15 @@ public class InstrumentString : MonoBehaviour
 
     [Tooltip("空弦音（不按品时的声音）")]
     public AudioClip openStringSound;
+
+    [Header("音量控制")]
+    [Tooltip("该弦的基础响度（用于整体混音微调），1 为默认响度")]
+    [Range(0f, 2f)]
+    public float stringVolume = 1f;
+
+    [Tooltip("全局基础音量（一般保持 1，特殊需要时可整体放大/压低该弦）")]
+    [Range(0f, 2f)]
+    public float baseVolume = 1f;
     
     [Header("🎼 智能音高调整")]
     [Tooltip("是否使用音高变调（只需要空弦音源，自动生成品位音）")]
@@ -312,7 +321,7 @@ public class InstrumentString : MonoBehaviour
             audioSource.clip = clipToPlay;
             float bendMult = Mathf.Pow(2f, bendSemitones / 12f);
             audioSource.pitch = pitchShift * bendMult;
-            audioSource.volume = 1.0f;
+            audioSource.volume = CalculateCurrentVolume();
             audioSource.Play();
             isPlaying = true;
             
@@ -388,12 +397,35 @@ public class InstrumentString : MonoBehaviour
         }
         audioSource.clip = clipToPlay;
         audioSource.pitch = pitchMultiplier;
-        audioSource.volume = 0.9f;
+        audioSource.volume = CalculateCurrentVolume();
         audioSource.Play();
         isPlaying = true;
         OnStringPlucked?.Invoke(stringIndex, -1);
         ShowStringVibration();
         if (Debug.isDebugBuild) Debug.Log($"🎵 泛音 弦{stringIndex} 倍率{pitchMultiplier:F2}");
+    }
+
+    /// <summary>
+    /// 计算当前应使用的音量（包含基础音量、每弦音量、乐器主音量）
+    /// </summary>
+    float CalculateCurrentVolume()
+    {
+        float instrumentVolume = 1f;
+
+        // 优先判断父级是否为古琴或琵琶控制器，从中读取主音量
+        GuqinController guqin = GetComponentInParent<GuqinController>();
+        if (guqin != null)
+            instrumentVolume = Mathf.Clamp01(guqin.masterVolume);
+        else
+        {
+            PipaController pipa = GetComponentInParent<PipaController>();
+            if (pipa != null)
+                instrumentVolume = Mathf.Clamp01(pipa.masterVolume);
+        }
+
+        // baseVolume 和 stringVolume 允许适当放大/压低（0~2），最终 Clamp 到 0~1
+        float vol = baseVolume * stringVolume * instrumentVolume;
+        return Mathf.Clamp01(vol);
     }
     
     /// <summary>
