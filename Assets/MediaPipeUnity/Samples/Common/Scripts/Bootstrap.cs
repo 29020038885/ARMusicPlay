@@ -29,6 +29,13 @@ namespace Mediapipe.Unity.Sample
       Debug.LogWarning("Logging for the MediaPipeUnityPlugin will be suppressed. To enable logging, please check the 'Development Build' option and build.");
 #endif
 
+      if (_appSettings == null)
+      {
+        Debug.LogError("Bootstrap: _appSettings is not assigned. HandLandmarkerRunner will not be able to initialize ImageSource/AssetLoader. " +
+                       "Fix: assign 'AppSettings.asset' to Bootstrap, or use a custom bootstrapper to initialize MediaPipe on mobile.");
+        yield break;
+      }
+
       Logger.MinLogLevel = _appSettings.logLevel;
 
       Protobuf.SetLogHandler(Protobuf.DefaultLogHandler);

@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Mediapipe.Tasks.Vision.HandLandmarker;
 using Mediapipe.Tasks.Components.Containers;
+using Mediapipe.Unity.Sample;
 
 public class HandLandmarkDataCollector : MonoBehaviour
 {
@@ -27,6 +28,8 @@ public string firstHandHandedness = "";
 
 private HandLandmarkerResult latestResult;
 private object resultLock = new object();
+
+private Coroutine startRunnerRoutine;
 
 void Start()
 {
@@ -90,12 +93,32 @@ public void StartCamera()
         return;
     }
 
-    // 重新启动 Runner
-    handLandmarkerRunner.Stop();
-    handLandmarkerRunner.gameObject.SetActive(false);
-    handLandmarkerRunner.gameObject.SetActive(true);
+    // 安全启动 Runner：不要在未 Play() 前强行 Stop()（会触发 StopCoroutine(null)）
+    if (!handLandmarkerRunner.gameObject.activeInHierarchy)
+    {
+        handLandmarkerRunner.gameObject.SetActive(true);
+    }
 
-    Debug.Log("HandLandmarkerRunner 已启动");
+    if (startRunnerRoutine != null)
+    {
+        StopCoroutine(startRunnerRoutine);
+        startRunnerRoutine = null;
+    }
+    startRunnerRoutine = StartCoroutine(StartRunnerNextFrame());
+}
+
+private System.Collections.IEnumerator StartRunnerNextFrame()
+{
+    // 等一帧让 Runner/GameObject 完成 OnEnable 等初始化
+    yield return null;
+
+    if (handLandmarkerRunner == null)
+        yield break;
+
+    // 如果场景中使用了 MediaPipe 官方 Bootstrap，这里假设它已经完成初始化；
+    // 若未使用 Bootstrap，则依赖 AppSettings/样例工程自身的配置。
+    Debug.Log("调用 HandLandmarkerRunner.Play()");
+    handLandmarkerRunner.Play();
 }
 
 public void StopCamera()
@@ -104,6 +127,12 @@ public void StopCamera()
     {
         handLandmarkerRunner.Stop();
         handLandmarkerRunner.gameObject.SetActive(false);
+    }
+
+    if (startRunnerRoutine != null)
+    {
+        StopCoroutine(startRunnerRoutine);
+        startRunnerRoutine = null;
     }
 
     hasHand = false;
