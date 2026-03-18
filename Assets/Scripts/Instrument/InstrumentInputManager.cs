@@ -296,13 +296,27 @@ public class InstrumentInputManager : MonoBehaviour
             var str = hit.collider.GetComponent<InstrumentString>();
             if (str != null)
             {
-                // 触碰到弦的瞬间就触发拨弦；若手指在屏幕上滑动并跨到另一根弦，也触发一次新弦的拨弦
-                int lastIndex = -1;
-                touchLastStringIndex.TryGetValue(t.fingerId, out lastIndex);
-                if ((t.phase == TouchPhase.Began || t.phase == TouchPhase.Moved) && str.stringIndex != lastIndex)
+                // 每次“点下”都要发声；若手指滑动跨到新弦，也触发一次新弦拨弦。
+                // 关键：同一根弦上的一次触摸会经历 Began->...->Ended，如果 Ended 也命中弦，这里必须清理 lastIndex，
+                // 否则下一次用同一个 fingerId 再点同一根弦时会被误判为“重复命中”而不发声。
+                if (t.phase == TouchPhase.Began)
                 {
                     pluckRay = ray;
                     touchLastStringIndex[t.fingerId] = str.stringIndex;
+                }
+                else if (t.phase == TouchPhase.Moved)
+                {
+                    int lastIndex = -1;
+                    touchLastStringIndex.TryGetValue(t.fingerId, out lastIndex);
+                    if (str.stringIndex != lastIndex)
+                    {
+                        pluckRay = ray;
+                        touchLastStringIndex[t.fingerId] = str.stringIndex;
+                    }
+                }
+                else if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled)
+                {
+                    touchLastStringIndex.Remove(t.fingerId);
                 }
                 continue;
             }
@@ -361,12 +375,24 @@ public class InstrumentInputManager : MonoBehaviour
             if (str != null)
             {
                 // 古琴同样支持：触碰到弦或滑到新弦时触发拨弦
-                int lastIndex = -1;
-                touchLastStringIndex.TryGetValue(t.fingerId, out lastIndex);
-                if ((t.phase == TouchPhase.Began || t.phase == TouchPhase.Moved) && str.stringIndex != lastIndex)
+                if (t.phase == TouchPhase.Began)
                 {
                     pluckRay = ray;
                     touchLastStringIndex[t.fingerId] = str.stringIndex;
+                }
+                else if (t.phase == TouchPhase.Moved)
+                {
+                    int lastIndex = -1;
+                    touchLastStringIndex.TryGetValue(t.fingerId, out lastIndex);
+                    if (str.stringIndex != lastIndex)
+                    {
+                        pluckRay = ray;
+                        touchLastStringIndex[t.fingerId] = str.stringIndex;
+                    }
+                }
+                else if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled)
+                {
+                    touchLastStringIndex.Remove(t.fingerId);
                 }
                 continue;
             }
