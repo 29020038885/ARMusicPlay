@@ -48,6 +48,11 @@ void SetupComponents()
 
     if (uiInteraction != null && uiInteraction.gestureDetector == null)
         uiInteraction.gestureDetector = gestureDetector;
+
+    // 面板手势（比耶/金属礼等）：未手动拖 DataCollector 时自动补上
+    var panelGesture = FindObjectOfType<HandPanelGestureOpener>();
+    if (panelGesture != null && panelGesture.dataCollector == null)
+        panelGesture.dataCollector = dataCollector;
 }
 
 IEnumerator InitCameraRoutine()

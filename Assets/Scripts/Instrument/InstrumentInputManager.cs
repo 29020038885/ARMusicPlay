@@ -688,6 +688,25 @@ public class InstrumentInputManager : MonoBehaviour
     }
 
     /// <summary>
+    /// UI 按钮统一入口：根据当前激活乐器，打开对应的“每弦音量”面板。
+    /// 这样一个按钮就能同时适配古琴/琵琶音量控制面板。
+    /// </summary>
+    public void OpenVolumePanelForActiveInstrument()
+    {
+        if (volumePanel == null)
+        {
+            Debug.LogWarning("InstrumentInputManager: volumePanel 未指定");
+            return;
+        }
+
+        // 保证 volumePanel 内部 activeInstrumentIndex 与当前激活乐器一致
+        volumePanel.OnInstrumentChanged(activeInstrument);
+
+        if (activeInstrument == 0) volumePanel.ShowGuqinPanel();
+        else volumePanel.ShowPipaPanel();
+    }
+
+    /// <summary>
     /// 将 activeInstrument 同步到乐器物体的显示/隐藏状态。
     /// 约定：guqinController / pipaController 挂在对应乐器根节点上。
     /// </summary>

@@ -14,6 +14,9 @@ public class SceneLoader : MonoBehaviour
     [Tooltip("UI 场景的名称（返回主界面用）")]
     public string uiSceneName = "UIpaper";
 
+    [Tooltip("AR 识别场景的名称（例如：ARDector）")]
+    public string arDectorSceneName = "ARDector";
+
     [Header("手势摄像头控制（可选）")]
     [Tooltip("当前场景中的 HandInteractionManager。若指定，在切换场景前会关闭手势摄像头。")]
     public HandInteractionManager handInteractionManager;
@@ -32,6 +35,14 @@ public class SceneLoader : MonoBehaviour
     public void LoadUIScene()
     {
         LoadScene(uiSceneName);
+    }
+
+    /// <summary>
+    /// 加载 AR 识别场景（给「进入 AR 识别」按钮用）
+    /// </summary>
+    public void LoadARDectorScene()
+    {
+        LoadScene(arDectorSceneName);
     }
 
     /// <summary>

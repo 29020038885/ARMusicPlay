@@ -211,16 +211,26 @@ public class HandUIInteraction : MonoBehaviour
 
         Button nearest = null;
         float minDist = detectionRadius;
+
         foreach (Button b in allButtons)
         {
-            if (b == null || !b.interactable || !b.gameObject.activeInHierarchy) continue;
+            if (b == null || !b.interactable || !b.gameObject.activeInHierarchy) 
+                continue;
+
+            // 关键：过滤掉被 RectMask2D 裁剪掉的按钮
+            if (!IsButtonVisibleInMask(b))
+                continue;
+
             RectTransform rt = b.GetComponent<RectTransform>();
             if (rt == null) continue;
+
             Vector3[] corners = new Vector3[4];
             rt.GetWorldCorners(corners);
             Vector3 center = (corners[0] + corners[2]) * 0.5f;
+
             Vector2 btnScreen = RectTransformUtility.WorldToScreenPoint(cam, center);
             float d = Vector2.Distance(screenPosition, btnScreen);
+
             if (IsPointInsideRect(screenPosition, corners, cam) || d < minDist)
             {
                 minDist = d;
@@ -228,6 +238,30 @@ public class HandUIInteraction : MonoBehaviour
             }
         }
         return nearest;
+    }
+    private bool IsButtonVisibleInMask(Button button)
+    {
+        RectMask2D mask = button.GetComponentInParent<RectMask2D>();
+        if (mask == null) return true;
+
+        RectTransform maskRect = mask.GetComponent<RectTransform>();
+        RectTransform btnRect = button.GetComponent<RectTransform>();
+
+        Vector3[] corners = new Vector3[4];
+        btnRect.GetWorldCorners(corners);
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (RectTransformUtility.RectangleContainsScreenPoint(
+                maskRect,
+                RectTransformUtility.WorldToScreenPoint(uiCamera, corners[i]),
+                uiCamera))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool IsPointInsideRect(Vector2 screenPoint, Vector3[] worldCorners, Camera cam)
