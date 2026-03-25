@@ -138,7 +138,8 @@ public class PipaController : MonoBehaviour
     {
         if (liveFret < 0) return 1f;
         if (liveFret == 0) return HarmonicPitchMultipliers.Length > 0 ? HarmonicPitchMultipliers[0] : 2f;
-        return Mathf.Pow(2f, (liveFret + 1) / 12f);
+        // 规则：0=泛音点；1=1品；2=2品...
+        return Mathf.Pow(2f, liveFret / 12f);
     }
 
     /// <summary>

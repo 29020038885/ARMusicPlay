@@ -276,9 +276,9 @@ public class InstrumentString : MonoBehaviour
             else if (usePitchShifting && openStringSound != null)
             {
                 clipToPlay = openStringSound;
-                // 计算音高倍率：fretIndex 0 = 第一品 = 比空弦高 1 个半音，每品再高一个半音
-                // 2^((currentFret+1)/12)，空弦=1.0，第一品≈1.059，第二品≈1.122…
-                pitchShift = Mathf.Pow(2f, (currentFret + 1) / 12f);
+                // 计算音高倍率：当前项目约定 0=泛音点，1=第一品，2=第二品...
+                // 2^(currentFret/12)，第一品≈1.059，第二品≈1.122…
+                pitchShift = Mathf.Pow(2f, currentFret / 12f);
                 Debug.Log($"✅ 拨动弦 {stringIndex}，品位 {currentFret}（音高变调 x{pitchShift:F3}）");
             }
             // 如果都没有，尝试使用 InstrumentAudioManager 生成
@@ -369,12 +369,12 @@ public class InstrumentString : MonoBehaviour
     }
 
     /// <summary>
-    /// 根据品位计算音高倍率（空弦=1，第 n 品 = 2^((n+1)/12)），供控制器在「拨弦后按品」时算总音高用
+    /// 根据品位计算音高倍率（空弦=1，第 n 品 = 2^(n/12)；本项目中 0 由控制器作为泛音点处理）
     /// </summary>
     public float GetPitchMultiplierForFret(int fretIndex)
     {
         if (fretIndex < 0) return 1f;
-        return Mathf.Pow(2f, (fretIndex + 1) / 12f);
+        return Mathf.Pow(2f, fretIndex / 12f);
     }
 
     /// <summary>

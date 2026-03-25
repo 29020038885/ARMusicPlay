@@ -157,14 +157,13 @@ namespace Mediapipe.Unity.Sample
 
     private void OnApplicationQuit()
     {
-      bool inited = IsGlogPersistentlyInitialized();
-
-      if (inited)
+      // 在当前项目环境里，Editor 停止运行时调用 Glog.Shutdown 可能导致
+      // "ShutdownGoogleLogging() without calling InitGoogleLogging() first" 的 native 致命崩溃。
+      // 因此这里不主动调用任何 shutdown，避免 Stop Play 直接闪退。
+      //
+      // 仅在真机/发布进程退出时清理持久标记，让下次冷启动可再次正常初始化。
+      if (!Application.isEditor)
       {
-        try { GpuManager.Shutdown(); } catch { /* ignore */ }
-        try { Glog.Shutdown(); } catch { /* ignore */ }
-        try { Protobuf.ResetLogHandler(); } catch { /* ignore */ }
-
         SetGlogPersistentlyInitialized(false);
       }
     }
