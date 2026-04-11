@@ -26,6 +26,10 @@ public class DisplayRatioFix : MonoBehaviour
     [Range(0f, 1f)]
     public float matchWidthOrHeight = 0.5f;
 
+    [Header("安全区适配")]
+    [Tooltip("是否自动给根 Canvas 添加 SafeAreaFitter，适配刘海/挖孔屏")]
+    public bool autoApplySafeArea = true;
+
     [Header("相机（仅正交相机）")]
     [Tooltip("设计时的正交 size（若为 0 则用当前相机值作为参考）")]
     public float referenceOrthoSize = 0f;
@@ -57,6 +61,16 @@ public class DisplayRatioFix : MonoBehaviour
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
             scaler.matchWidthOrHeight = matchWidthOrHeight;
             scaler.referencePixelsPerUnit = 100f;
+
+            if (autoApplySafeArea && canvas.isRootCanvas)
+            {
+                // 根 Canvas 自动加安全区适配，避免异形屏遮挡 UI。
+                var safe = canvas.GetComponent<SafeAreaFitter>();
+                if (safe == null)
+                    safe = canvas.gameObject.AddComponent<SafeAreaFitter>();
+                safe.applyOnStart = true;
+                safe.onlyForMobile = true;
+            }
         }
     }
 
@@ -64,18 +78,42 @@ public class DisplayRatioFix : MonoBehaviour
     {
         Camera cam = Camera.main;
         if (cam == null) cam = FindObjectOfType<Camera>();
-        if (cam == null || !cam.orthographic) return;
+        if (cam == null) return;
 
         float currentAspect = (float)Screen.width / Screen.height;
-        if (referenceOrthoSize <= 0f)
-            referenceOrthoSize = cam.orthographicSize;
-
-        // 设计时是按 reference 宽高比；当前屏幕宽高比不同时，用“按高度一致”来保持乐器在屏幕上的相对大小
-        // 即 orthoSize 以“高度”为基准，宽度方向多出来的用更多视野填满，避免乐器被拉大
         float aspectRatio = currentAspect / designAspect;
-        if (aspectRatio > 1f)
-            cam.orthographicSize = referenceOrthoSize * aspectRatio;
+
+        if (cam.orthographic)
+        {
+            if (referenceOrthoSize <= 0f)
+                referenceOrthoSize = cam.orthographicSize;
+
+            // 正交相机按“设计高度一致”策略，超宽屏时扩展可视范围，避免主体被放大。
+            cam.orthographicSize = aspectRatio > 1f ? referenceOrthoSize * aspectRatio : referenceOrthoSize;
+            return;
+        }
+
+        // 透视相机不直接改 FOV，使用 viewport letterbox/pillarbox 保持构图一致。
+        // 这样不同长宽比设备看起来与编辑器构图更一致。
+        Rect rect = cam.rect;
+        if (aspectRatio < 1f)
+        {
+            // 设备更“窄”，上下保持，左右加黑边（pillarbox）
+            float scale = aspectRatio;
+            rect.width = scale;
+            rect.height = 1f;
+            rect.x = (1f - scale) * 0.5f;
+            rect.y = 0f;
+        }
         else
-            cam.orthographicSize = referenceOrthoSize;
+        {
+            // 设备更“宽”，左右保持，上下加黑边（letterbox）
+            float scale = 1f / aspectRatio;
+            rect.width = 1f;
+            rect.height = scale;
+            rect.x = 0f;
+            rect.y = (1f - scale) * 0.5f;
+        }
+        cam.rect = rect;
     }
 }
