@@ -40,6 +40,19 @@ public class ARSceneInteractionController : MonoBehaviour
         [Tooltip("演奏模式下显示的物体根节点（通常可与 modelRoot 相同）")]
         public GameObject performanceRoot;
 
+        [Header("演奏模式位置（相机前方）")]
+        [Tooltip("演奏模式时，将该乐器固定在 AR 相机前方的距离（米）；可为每个乐器单独设置")]
+        public float performanceDistanceFromCamera = 0.7f;
+
+        [Tooltip("相机局部坐标偏移（米）。X=左右，Y=上下，Z=前后微调。可为每个乐器单独设置")]
+        public Vector3 performanceCameraLocalOffset = Vector3.zero;
+
+        [Tooltip("演奏模式时是否让乐器朝向随相机旋转")]
+        public bool alignPerformanceRotationToCamera = false;
+
+        [Tooltip("当 alignPerformanceRotationToCamera=true 时生效：在相机旋转基础上的欧拉角偏移")]
+        public Vector3 performanceRotationOffsetEuler = Vector3.zero;
+
         [Tooltip("该乐器对应的名曲面板（每乐器独立）")]
         public GameObject musicPanel;
 
@@ -80,7 +93,7 @@ public class ARSceneInteractionController : MonoBehaviour
     [Tooltip("可选：仅隐藏功能按钮区域；不填则打开子面板时隐藏整个 optionPanel")]
     public GameObject optionMenuContentRoot;
 
-    [Tooltip("双击进入 option 后隐藏，直至 ExitOptionPanel/CloseAllPanels 完全退出；打开故事/名曲期间仍保持隐藏")]
+    [Tooltip("双击进入 option 后隐藏；故事/名曲/演奏模式期间仍保持隐藏；ExitOptionPanel/CloseAllPanels 或退出演奏且未在 option 会话时才恢复")]
     public GameObject[] objectsHiddenWhileOptionMenuOnTop = Array.Empty<GameObject>();
 
     [Header("共用故事面板")]
@@ -121,6 +134,10 @@ public class ARSceneInteractionController : MonoBehaviour
     [Tooltip("若 instrumentInputToEnable 是 InstrumentInputManager，可自动切换激活乐器")]
     public bool autoSyncInstrumentInInputManager = true;
 
+    [Header("演奏模式公共返回按钮（可选）")]
+    [Tooltip("若指定，运行时自动监听点击：退出演奏模式并回到 optionPanel")]
+    public Button performanceBackToOptionButton;
+
     private int currentInstrumentIndex = -1;
     private bool isInPerformanceMode = false;
 
@@ -132,7 +149,7 @@ public class ARSceneInteractionController : MonoBehaviour
 
     private int currentStoryPageIndex;
 
-    /// <summary>从双击打开 option 到整段 AR 菜单退出前为 true；期间无论故事/名曲是否打开，辅助 UI 都保持隐藏。</summary>
+    /// <summary>从双击打开 option 到 Exit/CloseAll 前为 true；与演奏模式标志共同决定 objectsHiddenWhileOptionMenuOnTop 的显隐。</summary>
     bool optionFlowSessionActive;
 
     void Awake()
@@ -143,6 +160,8 @@ public class ARSceneInteractionController : MonoBehaviour
             sharedStoryPrevButton.onClick.AddListener(StoryPrevPage);
         if (sharedStoryNextButton != null)
             sharedStoryNextButton.onClick.AddListener(StoryNextPage);
+        if (performanceBackToOptionButton != null)
+            performanceBackToOptionButton.onClick.AddListener(ReturnFromPerformanceToOptionPanel);
     }
 
     void OnDestroy()
@@ -151,6 +170,8 @@ public class ARSceneInteractionController : MonoBehaviour
             sharedStoryPrevButton.onClick.RemoveListener(StoryPrevPage);
         if (sharedStoryNextButton != null)
             sharedStoryNextButton.onClick.RemoveListener(StoryNextPage);
+        if (performanceBackToOptionButton != null)
+            performanceBackToOptionButton.onClick.RemoveListener(ReturnFromPerformanceToOptionPanel);
     }
 
     void Start()
@@ -164,12 +185,17 @@ public class ARSceneInteractionController : MonoBehaviour
         }
 
         SetBehaviourEnabled(instrumentInputToEnable, false);
+        SetPerformanceBackButtonVisible(false);
         ApplyOptionAuxiliaryVisibility();
     }
 
     void Update()
     {
-        if (isInPerformanceMode) return;
+        if (isInPerformanceMode)
+        {
+            UpdateActivePerformanceRootPose();
+            return;
+        }
         HandleDoubleTap();
     }
 
@@ -177,6 +203,8 @@ public class ARSceneInteractionController : MonoBehaviour
     {
         StopCurrentTrack();
         optionFlowSessionActive = false;
+        isInPerformanceMode = false;
+        SetPerformanceBackButtonVisible(false);
         ApplyOptionAuxiliaryVisibility();
     }
 
@@ -393,10 +421,11 @@ public class ARSceneInteractionController : MonoBehaviour
     void ApplyOptionAuxiliaryVisibility()
     {
         if (objectsHiddenWhileOptionMenuOnTop == null) return;
+        bool hideAux = optionFlowSessionActive || isInPerformanceMode;
         foreach (var go in objectsHiddenWhileOptionMenuOnTop)
         {
             if (go == null) continue;
-            go.SetActive(!optionFlowSessionActive);
+            go.SetActive(!hideAux);
         }
     }
 
@@ -589,6 +618,11 @@ public class ARSceneInteractionController : MonoBehaviour
             bool active = i == currentInstrumentIndex;
             SetActiveSafe(instruments[i].performanceRoot, active);
         }
+
+        SetPerformanceBackButtonVisible(true);
+
+        // 进入演奏模式时先对齐一次位置，后续在 Update 中持续跟随相机
+        UpdateActivePerformanceRootPose();
     }
 
     public void ExitPerformanceMode()
@@ -602,6 +636,30 @@ public class ARSceneInteractionController : MonoBehaviour
         {
             SetActiveSafe(instruments[i].performanceRoot, false);
         }
+
+        SetPerformanceBackButtonVisible(false);
+
+        ApplyOptionAuxiliaryVisibility();
+    }
+
+    /// <summary>
+    /// 演奏模式下返回 optionPanel（可由 performanceBackToOptionButton 自动调用，或手动绑按钮）。
+    /// </summary>
+    public void ReturnFromPerformanceToOptionPanel()
+    {
+        // 先退出演奏态：关闭演奏模型、恢复输入
+        if (isInPerformanceMode)
+        {
+            ExitPerformanceMode();
+        }
+
+        // 回到 option 流程并展示 option 菜单
+        optionFlowSessionActive = true;
+        SetActiveSafe(sharedStoryPanel, false);
+        HideAllMusicPanels();
+        ShowOptionMenuVisual();
+        SetArModelsSuppressedForUi(false);
+        ApplyOptionAuxiliaryVisibility();
     }
 
     void ApplyInputStateForPerformance(bool inPerformance)
@@ -626,6 +684,33 @@ public class ARSceneInteractionController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 演奏模式下：将当前乐器模型固定在 AR 相机前方指定距离与偏移处。
+    /// </summary>
+    void UpdateActivePerformanceRootPose()
+    {
+        if (!HasCurrentInstrument()) return;
+        if (arCamera == null) arCamera = Camera.main;
+        if (arCamera == null) return;
+
+        var binding = instruments[currentInstrumentIndex];
+        if (binding.performanceRoot == null) return;
+
+        var camTr = arCamera.transform;
+        float distance = Mathf.Max(0.05f, binding.performanceDistanceFromCamera);
+        Vector3 worldPos = camTr.position
+            + camTr.forward * distance
+            + camTr.TransformVector(binding.performanceCameraLocalOffset);
+
+        var targetTr = binding.performanceRoot.transform;
+        targetTr.position = worldPos;
+
+        if (binding.alignPerformanceRotationToCamera)
+        {
+            targetTr.rotation = camTr.rotation * Quaternion.Euler(binding.performanceRotationOffsetEuler);
+        }
+    }
+
     bool HasCurrentInstrument()
     {
         return currentInstrumentIndex >= 0 && currentInstrumentIndex < instruments.Count;
@@ -639,6 +724,12 @@ public class ARSceneInteractionController : MonoBehaviour
     void SetBehaviourEnabled(MonoBehaviour mb, bool enabled)
     {
         if (mb != null) mb.enabled = enabled;
+    }
+
+    void SetPerformanceBackButtonVisible(bool visible)
+    {
+        if (performanceBackToOptionButton == null) return;
+        performanceBackToOptionButton.gameObject.SetActive(visible);
     }
 
     bool IsPointerOverUI()
