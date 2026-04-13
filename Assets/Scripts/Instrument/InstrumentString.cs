@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 using System;
 
 /// <summary>
@@ -37,17 +38,7 @@ public class InstrumentString : MonoBehaviour
     [Tooltip("是否优先使用 fretSounds 数组中的音频（如果有）")]
     public bool preferCustomFretSounds = true;
 
-    [Header("视觉反馈")]
-    [Tooltip("弦被触碰时的颜色")]
-    public Color touchColor = Color.yellow;
-
-    [Tooltip("弦的默认颜色")]
-    public Color defaultColor = Color.white;
-
-    [Tooltip("弦的材质")]
-    public Material stringMaterial;
-    
-    [Header("🎨 模型琴弦设置")]
+    [Header("🎨 模型琴弦设置（视觉仅震动，不改材质颜色）")]
     [Tooltip("可选：你的模型琴弦（视觉模型）。如果设置，震动效果将应用到这个物体上")]
     public Transform visualStringObject;
     
@@ -61,6 +52,10 @@ public class InstrumentString : MonoBehaviour
     [Range(0f, 1f)]
     [Tooltip("碰撞琴弦的透明度（0=完全透明，1=完全不透明）")]
     public float colliderAlpha = 0.1f;
+
+    [Header("线条材质（LineRenderer）")]
+    [Tooltip("可选：指定 LineRenderer 材质。不指定时若材质为空或错误 Shader，会自动使用完全透明的 URP 默认线条材质（避免全粉弦，碰撞仍在）")]
+    public Material lineRendererMaterialOverride;
 
     [Header("状态")]
     [Tooltip("当前是否被按住品")]
@@ -77,7 +72,6 @@ public class InstrumentString : MonoBehaviour
 
     private Renderer stringRenderer;
     private AudioSource audioSource;
-    private Color originalColor;
     private float vibrationTime = 0f;
     private float vibrationDuration = 0.5f;
     
@@ -89,6 +83,38 @@ public class InstrumentString : MonoBehaviour
     private Coroutine currentVibrationCoroutine; // 当前正在运行的震动协程
     /// <summary>拨弦时的基础音高倍率（不含推拉），用于拨弦后推拉时实时改音高</summary>
     private float sustainBasePitchMultiplier = 1f;
+
+    void Awake()
+    {
+        var lr = GetComponent<LineRenderer>();
+        if (lr == null) return;
+
+        if (lineRendererMaterialOverride != null)
+        {
+            lr.sharedMaterial = lineRendererMaterialOverride;
+            return;
+        }
+
+        if (LineRendererNeedsDefaultMaterial(lr))
+        {
+            Material fallback = InstrumentStringLineMaterialCache.Get();
+            if (fallback != null)
+                lr.sharedMaterial = fallback;
+        }
+    }
+
+    static bool LineRendererNeedsDefaultMaterial(LineRenderer lr)
+    {
+        Material[] mats = lr.sharedMaterials;
+        if (mats == null || mats.Length == 0) return true;
+        foreach (Material m in mats)
+        {
+            if (m == null) return true;
+            if (m.shader == null) return true;
+            if (m.shader.name == "Hidden/InternalErrorShader") return true;
+        }
+        return false;
+    }
 
     void Start()
     {
@@ -129,20 +155,6 @@ public class InstrumentString : MonoBehaviour
         
         // 保存碰撞琴弦的原始缩放（如果需要同时震动）
         colliderOriginalScale = transform.localScale;
-
-        // 保存原始颜色
-        if (visualRenderer != null && visualRenderer.material != null)
-        {
-            originalColor = visualRenderer.material.color;
-        }
-        else if (stringRenderer != null && stringRenderer.material != null)
-        {
-            originalColor = stringRenderer.material.color;
-        }
-        else
-        {
-            originalColor = defaultColor;
-        }
 
         // 确保有 Collider
         Collider col = GetComponent<Collider>();
@@ -458,22 +470,7 @@ public class InstrumentString : MonoBehaviour
     void ShowStringVibration()
     {
         vibrationTime = vibrationDuration;
-        
-        Debug.Log($"💫 显示视觉反馈：弦 {stringIndex}");
-        
-        // 改变颜色（优先使用模型琴弦）
-        Renderer targetRenderer = visualRenderer != null ? visualRenderer : stringRenderer;
-        
-        if (targetRenderer != null && targetRenderer.material != null)
-        {
-            targetRenderer.material.color = touchColor;
-            Debug.Log($"✅ 弦颜色已改变为 {touchColor} (物体: {targetRenderer.gameObject.name})");
-        }
-        else
-        {
-            Debug.LogWarning($"⚠️ 弦 {stringIndex} 没有 Renderer 或 Material，无法显示颜色变化");
-        }
-        
+
         // 🔧 停止之前的震动协程（如果有）
         if (currentVibrationCoroutine != null)
         {
@@ -565,15 +562,7 @@ public class InstrumentString : MonoBehaviour
     void ResetStringVisual()
     {
         isPlaying = false;
-        
-        // 优先恢复模型琴弦颜色
-        Renderer targetRenderer = visualRenderer != null ? visualRenderer : stringRenderer;
-        
-        if (targetRenderer != null && targetRenderer.material != null)
-        {
-            targetRenderer.material.color = originalColor;
-        }
-        
+
         // 🔧 同时确保缩放恢复到原始值
         ForceResetScale();
     }
@@ -606,6 +595,87 @@ public class InstrumentString : MonoBehaviour
     {
         openStringSound = openString;
         fretSounds = frets;
+    }
+}
+
+/// <summary>
+/// LineRenderer 未指定材质时 Unity 会显示粉色；此处用 URP 常见 Shader 生成一份共享默认材质（完全透明线条，仅保留碰撞/逻辑）。
+/// </summary>
+static class InstrumentStringLineMaterialCache
+{
+    /// <summary>默认线条不透明度；0 为完全透明，1 为不透明。</summary>
+    public const float DefaultLineAlpha = 0f;
+
+    static Material s_mat;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ClearCache()
+    {
+        s_mat = null;
+    }
+
+    public static Material Get()
+    {
+        if (s_mat != null) return s_mat;
+
+        // Particles/Unlit 对 LineRenderer + 透明度通常最省事
+        string[] shaderNames =
+        {
+            "Universal Render Pipeline/Particles/Unlit",
+            "Universal Render Pipeline/Unlit",
+            "Universal Render Pipeline/Lit",
+            "Sprites/Default",
+            "Unlit/Color",
+        };
+
+        foreach (string name in shaderNames)
+        {
+            Shader s = Shader.Find(name);
+            if (s == null) continue;
+
+            s_mat = new Material(s) { name = "InstrumentString_DefaultLine" };
+            var baseColor = new Color(1f, 1f, 1f, DefaultLineAlpha);
+
+            if (s.name.StartsWith("Universal Render Pipeline/", StringComparison.Ordinal))
+                ApplyUrpTransparentLine(s_mat, baseColor);
+            else
+                ApplyBuiltinTransparentLine(s_mat, baseColor);
+
+            return s_mat;
+        }
+
+        Debug.LogError("InstrumentString: 找不到可用的线条 Shader（URP Unlit / Lit 等），琴弦仍可能显示为粉色。请在 InstrumentString 上指定 lineRendererMaterialOverride。");
+        return null;
+    }
+
+    static void ApplyUrpTransparentLine(Material m, Color baseColor)
+    {
+        if (m.HasProperty("_BaseColor"))
+            m.SetColor("_BaseColor", baseColor);
+        if (m.HasProperty("_Color"))
+            m.SetColor("_Color", baseColor);
+
+        if (m.HasProperty("_Surface"))
+        {
+            m.SetFloat("_Surface", 1f);
+            if (m.HasProperty("_Blend"))
+                m.SetFloat("_Blend", 0f);
+            if (m.HasProperty("_AlphaClip"))
+                m.SetFloat("_AlphaClip", 0f);
+            if (m.HasProperty("_ZWrite"))
+                m.SetFloat("_ZWrite", 0f);
+            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m.DisableKeyword("_SURFACE_TYPE_OPAQUE");
+        }
+
+        m.renderQueue = (int)RenderQueue.Transparent;
+    }
+
+    static void ApplyBuiltinTransparentLine(Material m, Color baseColor)
+    {
+        if (m.HasProperty("_Color"))
+            m.SetColor("_Color", baseColor);
+        m.renderQueue = (int)RenderQueue.Transparent;
     }
 }
 

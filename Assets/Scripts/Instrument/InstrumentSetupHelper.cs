@@ -128,8 +128,12 @@ public class InstrumentSetupHelper : MonoBehaviour
         lineRenderer.SetPosition(1, endPos - centerPos);
 
         if (stringMaterial != null)
+            lineRenderer.sharedMaterial = stringMaterial;
+        else
         {
-            lineRenderer.material = stringMaterial;
+            Material def = InstrumentStringLineMaterialCache.Get();
+            if (def != null)
+                lineRenderer.sharedMaterial = def;
         }
 
         // 创建碰撞体

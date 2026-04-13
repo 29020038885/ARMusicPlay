@@ -493,13 +493,11 @@ MonoBehaviour:
   baseVolume: 1
   usePitchShifting: 1
   preferCustomFretSounds: 1
-  touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 0}
-  defaultColor: {r: 1, g: 1, b: 1, a: 0}
-  stringMaterial: {fileID: 0}
   visualStringObject: {fileID: 1727056662}
   alsoVibrateCollider: 0
   makeColliderInvisible: 1
   colliderAlpha: 0.1
+  lineRendererMaterialOverride: {fileID: 0}
   isFretPressed: 0
   currentFret: -1
   isPlaying: 0
@@ -1425,8 +1423,8 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
-      key1: {r: 1, g: 1, b: 1, a: 1}
+      key0: {r: 1, g: 1, b: 1, a: 0}
+      key1: {r: 1, g: 1, b: 1, a: 0}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -1450,7 +1448,7 @@ LineRenderer:
       atime6: 0
       atime7: 0
       m_Mode: 0
-      m_ColorSpace: -1
+      m_ColorSpace: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 0
@@ -1484,13 +1482,11 @@ MonoBehaviour:
   baseVolume: 1
   usePitchShifting: 1
   preferCustomFretSounds: 1
-  touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 0}
-  defaultColor: {r: 1, g: 1, b: 1, a: 0}
-  stringMaterial: {fileID: 0}
   visualStringObject: {fileID: 1398494700}
   alsoVibrateCollider: 0
   makeColliderInvisible: 1
   colliderAlpha: 0.1
+  lineRendererMaterialOverride: {fileID: 0}
   isFretPressed: 0
   currentFret: -1
   isPlaying: 0
@@ -3085,13 +3081,11 @@ MonoBehaviour:
   baseVolume: 1
   usePitchShifting: 1
   preferCustomFretSounds: 1
-  touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  defaultColor: {r: 1, g: 1, b: 1, a: 1}
-  stringMaterial: {fileID: 0}
   visualStringObject: {fileID: 1289619786552247189}
   alsoVibrateCollider: 0
   makeColliderInvisible: 1
   colliderAlpha: 0.1
+  lineRendererMaterialOverride: {fileID: 0}
   isFretPressed: 0
   currentFret: -1
   isPlaying: 0
@@ -4670,13 +4664,11 @@ MonoBehaviour:
   baseVolume: 1
   usePitchShifting: 1
   preferCustomFretSounds: 1
-  touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  defaultColor: {r: 1, g: 1, b: 1, a: 1}
-  stringMaterial: {fileID: 0}
   visualStringObject: {fileID: 564452287838885364}
   alsoVibrateCollider: 0
   makeColliderInvisible: 1
   colliderAlpha: 0
+  lineRendererMaterialOverride: {fileID: 0}
   isFretPressed: 0
   currentFret: -1
   isPlaying: 0
@@ -5450,13 +5442,11 @@ MonoBehaviour:
   baseVolume: 1
   usePitchShifting: 1
   preferCustomFretSounds: 1
-  touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 0}
-  defaultColor: {r: 1, g: 1, b: 1, a: 0}
-  stringMaterial: {fileID: 0}
   visualStringObject: {fileID: 417841354}
   alsoVibrateCollider: 0
   makeColliderInvisible: 1
   colliderAlpha: 0.1
+  lineRendererMaterialOverride: {fileID: 0}
   isFretPressed: 0
   currentFret: -1
   isPlaying: 0
@@ -6699,13 +6689,11 @@ MonoBehaviour:
   baseVolume: 1
   usePitchShifting: 1
   preferCustomFretSounds: 1
-  touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  defaultColor: {r: 1, g: 1, b: 1, a: 1}
-  stringMaterial: {fileID: 0}
   visualStringObject: {fileID: 3424286510110490428}
   alsoVibrateCollider: 0
   makeColliderInvisible: 1
   colliderAlpha: 0.1
+  lineRendererMaterialOverride: {fileID: 0}
   isFretPressed: 0
   currentFret: -1
   isPlaying: 0
@@ -7388,13 +7376,11 @@ MonoBehaviour:
   baseVolume: 1
   usePitchShifting: 1
   preferCustomFretSounds: 1
-  touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 0}
-  defaultColor: {r: 1, g: 1, b: 1, a: 0}
-  stringMaterial: {fileID: 0}
   visualStringObject: {fileID: 1871523374}
   alsoVibrateCollider: 0
   makeColliderInvisible: 1
   colliderAlpha: 0.1
+  lineRendererMaterialOverride: {fileID: 0}
   isFretPressed: 0
   currentFret: -1
   isPlaying: 0
@@ -8720,13 +8706,11 @@ MonoBehaviour:
   baseVolume: 1
   usePitchShifting: 1
   preferCustomFretSounds: 1
-  touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  defaultColor: {r: 1, g: 1, b: 1, a: 1}
-  stringMaterial: {fileID: 0}
   visualStringObject: {fileID: 6602795275270877799}
   alsoVibrateCollider: 0
   makeColliderInvisible: 1
   colliderAlpha: 0
+  lineRendererMaterialOverride: {fileID: 0}
   isFretPressed: 0
   currentFret: -1
   isPlaying: 0
@@ -9528,13 +9512,11 @@ MonoBehaviour:
   baseVolume: 1
   usePitchShifting: 1
   preferCustomFretSounds: 1
-  touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 0}
-  defaultColor: {r: 1, g: 1, b: 1, a: 0}
-  stringMaterial: {fileID: 0}
   visualStringObject: {fileID: 852896804}
   alsoVibrateCollider: 0
   makeColliderInvisible: 1
   colliderAlpha: 0.1
+  lineRendererMaterialOverride: {fileID: 0}
   isFretPressed: 0
   currentFret: -1
   isPlaying: 0
@@ -11630,13 +11612,11 @@ MonoBehaviour:
   baseVolume: 1
   usePitchShifting: 1
   preferCustomFretSounds: 1
-  touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 0}
-  defaultColor: {r: 1, g: 1, b: 1, a: 0}
-  stringMaterial: {fileID: 0}
   visualStringObject: {fileID: 42571010}
   alsoVibrateCollider: 0
   makeColliderInvisible: 1
   colliderAlpha: 0.1
+  lineRendererMaterialOverride: {fileID: 0}
   isFretPressed: 0
   currentFret: -1
   isPlaying: 0
@@ -14295,13 +14275,11 @@ MonoBehaviour:
   baseVolume: 1
   usePitchShifting: 1
   preferCustomFretSounds: 1
-  touchColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 0}
-  defaultColor: {r: 1, g: 1, b: 1, a: 0}
-  stringMaterial: {fileID: 0}
   visualStringObject: {fileID: 281655799}
   alsoVibrateCollider: 0
   makeColliderInvisible: 1
   colliderAlpha: 0.1
+  lineRendererMaterialOverride: {fileID: 0}
   isFretPressed: 0
   currentFret: -1
   isPlaying: 0
