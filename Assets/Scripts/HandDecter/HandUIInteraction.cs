@@ -24,6 +24,16 @@ public class HandUIInteraction : MonoBehaviour
     [Range(10f, 80f)]
     public float detectionRadius = 40f;
 
+    [Tooltip("同一帧最多触发一次 UI 点击，避免双手/误检导致一次手势触发多次")]
+    public bool singleClickPerFrame = true;
+
+    [Tooltip("全局点击冷却（秒），跨手生效，防止一次手势连点两次")]
+    [Range(0f, 0.5f)]
+    public float globalInteractionCooldown = 0.15f;
+
+    [Tooltip("开启后：一次连续捏合只触发一次点击，必须先松手再捏合才会再次触发")]
+    public bool triggerOncePerPinchSession = true;
+
     [Header("状态")]
     public bool isInteracting;
     public Button currentInteractingButton;
@@ -36,6 +46,8 @@ public class HandUIInteraction : MonoBehaviour
     private List<Button> allButtons = new List<Button>();
     private Dictionary<int, float> lastInteractionTimes = new Dictionary<int, float>();
     private Dictionary<int, GameObject> currentInteractingByHand = new Dictionary<int, GameObject>();
+    private float lastGlobalInteractionTime = -10f;
+    private bool hasTriggeredInCurrentPinchSession = false;
 
     void Start()
     {
@@ -71,14 +83,20 @@ public class HandUIInteraction : MonoBehaviour
             currentInteractingButton = null;
             currentInteractingByHand.Clear();
             isInteracting = false;
+            hasTriggeredInCurrentPinchSession = false;
             return;
         }
+
+        if (triggerOncePerPinchSession && hasTriggeredInCurrentPinchSession)
+            return;
 
         CheckPinchInteraction();
     }
 
     private void CheckPinchInteraction()
     {
+        bool clickedThisFrame = false;
+
         // 清理已松开的捏合手
         List<int> toRemove = new List<int>();
         foreach (var handIndex in currentInteractingByHand.Keys)
@@ -98,6 +116,12 @@ public class HandUIInteraction : MonoBehaviour
 
         foreach (var hand in gestureDetector.pinchHands)
         {
+            if (singleClickPerFrame && clickedThisFrame)
+                break;
+
+            if (Time.time - lastGlobalInteractionTime < globalInteractionCooldown)
+                continue;
+
             int handIndex = hand.handIndex;
             if (lastInteractionTimes.TryGetValue(handIndex, out float t) && Time.time - t < interactionCooldown)
                 continue;
@@ -110,6 +134,9 @@ public class HandUIInteraction : MonoBehaviour
                     TriggerClick(hit, hand.pinchScreenPosition);
                     currentInteractingByHand[handIndex] = hit;
                     lastInteractionTimes[handIndex] = Time.time;
+                    lastGlobalInteractionTime = Time.time;
+                    clickedThisFrame = true;
+                    hasTriggeredInCurrentPinchSession = true;
                     isInteracting = true;
                     currentInteractingButton = hit.GetComponent<Button>();
                     if (showDebugLog)
@@ -126,6 +153,9 @@ public class HandUIInteraction : MonoBehaviour
                         TriggerButtonClick(nearest);
                         currentInteractingByHand[handIndex] = nearest.gameObject;
                         lastInteractionTimes[handIndex] = Time.time;
+                        lastGlobalInteractionTime = Time.time;
+                        clickedThisFrame = true;
+                        hasTriggeredInCurrentPinchSession = true;
                         isInteracting = true;
                         currentInteractingButton = nearest;
                         if (showDebugLog)
