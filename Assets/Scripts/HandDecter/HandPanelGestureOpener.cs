@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -54,6 +55,19 @@ public class HandPanelGestureOpener : MonoBehaviour
     [Range(0.3f, 5f)]
     public float cooldownSeconds = 1.2f;
 
+    [Header("竖大拇指（仅 Preset = ThumbsUp 时生效）")]
+    [Tooltip("拇指手势需连续匹配至少该时长（秒）后才开始累计稳定帧；为 0 则与其它手势相同")]
+    [Range(0f, 1.5f)]
+    public float thumbsUpMinHoldSeconds = 0.12f;
+
+    [Tooltip("在 ThumbsUp 下额外增加稳定帧数（在 min hold 之后累计）")]
+    [Range(0, 30)]
+    public int thumbsUpStableFrameBonus = 4;
+
+    [Tooltip("竖大拇指触发后额外冷却（秒），叠在 cooldownSeconds 上；仅 ThumbsUp")]
+    [Range(0f, 3f)]
+    public float thumbsUpExtraCooldownSeconds = 0.25f;
+
     [Header("行为")]
     [Tooltip("为 true：每次识别到一次完整手势则切换 显示/隐藏；为 false：仅设为显示")]
     public bool togglePanel = true;
@@ -64,6 +78,10 @@ public class HandPanelGestureOpener : MonoBehaviour
     [Header("事件（可选）")]
     public UnityEvent onPanelShown;
     public UnityEvent onPanelHidden;
+
+    [Header("打开 targetPanel 时屏蔽背景 UI")]
+    [Tooltip("手势打开本面板且其显示时，将这些 CanvasGroup 的 interactable 设为 false，避免捏合仍点到背后界面（需在对象上挂 CanvasGroup）")]
+    public List<CanvasGroup> canvasGroupsToBlockWhenTargetPanelOpen = new List<CanvasGroup>();
 
     // MediaPipe 手部 21 点索引
     private const int Wrist = 0;
@@ -80,6 +98,19 @@ public class HandPanelGestureOpener : MonoBehaviour
 
     private int _stableFrames;
     private float _cooldownUntil;
+    private float _thumbsUpMatchStartUnscaled = -1f;
+
+    private static readonly List<HandPanelGestureOpener> RegisteredInstances = new List<HandPanelGestureOpener>();
+
+    private struct BlockedCgState
+    {
+        public CanvasGroup group;
+        public bool interactable;
+        public bool blocksRaycasts;
+    }
+
+    private readonly List<BlockedCgState> _blockedCgRestore = new List<BlockedCgState>(4);
+    private bool _backgroundBlockingApplied;
 
     private void Awake()
     {
@@ -88,6 +119,116 @@ public class HandPanelGestureOpener : MonoBehaviour
 
         if (hidePanelOnAwake && targetPanel != null)
             targetPanel.SetActive(false);
+    }
+
+    private void OnEnable()
+    {
+        if (!RegisteredInstances.Contains(this))
+            RegisteredInstances.Add(this);
+    }
+
+    private void OnDisable()
+    {
+        RegisteredInstances.Remove(this);
+        SetBackgroundCanvasBlocking(false);
+    }
+
+    private void LateUpdate()
+    {
+        if (canvasGroupsToBlockWhenTargetPanelOpen == null || canvasGroupsToBlockWhenTargetPanelOpen.Count == 0 || targetPanel == null)
+            return;
+
+        bool panelVisible = targetPanel.activeInHierarchy;
+        if (panelVisible != _backgroundBlockingApplied)
+            SetBackgroundCanvasBlocking(panelVisible);
+    }
+
+    /// <summary>
+    /// 任一手势打开的面板处于显示，且命中物体落在配置的「背景 CanvasGroup」下（且不在该 opener 的 targetPanel 下）时，
+    /// HandUIInteraction 等应忽略该次交互，避免捏合直接 Invoke 仍触发背后按钮。
+    /// </summary>
+    public static bool ShouldSuppressHandUiForTransform(Transform t)
+    {
+        if (t == null) return false;
+        for (int i = 0; i < RegisteredInstances.Count; i++)
+        {
+            HandPanelGestureOpener o = RegisteredInstances[i];
+            if (o == null || o.targetPanel == null || !o.targetPanel.activeInHierarchy)
+                continue;
+            if (o.canvasGroupsToBlockWhenTargetPanelOpen == null || o.canvasGroupsToBlockWhenTargetPanelOpen.Count == 0)
+                continue;
+
+            if (t.IsChildOf(o.targetPanel.transform))
+                continue;
+
+            for (int c = 0; c < o.canvasGroupsToBlockWhenTargetPanelOpen.Count; c++)
+            {
+                CanvasGroup cg = o.canvasGroupsToBlockWhenTargetPanelOpen[c];
+                if (cg == null) continue;
+                if (t.IsChildOf(cg.transform))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private void SetBackgroundCanvasBlocking(bool block)
+    {
+        if (canvasGroupsToBlockWhenTargetPanelOpen == null || canvasGroupsToBlockWhenTargetPanelOpen.Count == 0)
+        {
+            if (_backgroundBlockingApplied)
+            {
+                for (int i = 0; i < _blockedCgRestore.Count; i++)
+                {
+                    BlockedCgState s = _blockedCgRestore[i];
+                    if (s.group != null)
+                    {
+                        s.group.interactable = s.interactable;
+                        s.group.blocksRaycasts = s.blocksRaycasts;
+                    }
+                }
+                _blockedCgRestore.Clear();
+            }
+            _backgroundBlockingApplied = false;
+            return;
+        }
+
+        if (block && _backgroundBlockingApplied)
+            return;
+        if (!block && !_backgroundBlockingApplied)
+            return;
+
+        if (block)
+        {
+            _blockedCgRestore.Clear();
+            for (int i = 0; i < canvasGroupsToBlockWhenTargetPanelOpen.Count; i++)
+            {
+                CanvasGroup cg = canvasGroupsToBlockWhenTargetPanelOpen[i];
+                if (cg == null) continue;
+                _blockedCgRestore.Add(new BlockedCgState
+                {
+                    group = cg,
+                    interactable = cg.interactable,
+                    blocksRaycasts = cg.blocksRaycasts
+                });
+                cg.interactable = false;
+            }
+            _backgroundBlockingApplied = true;
+        }
+        else
+        {
+            for (int i = 0; i < _blockedCgRestore.Count; i++)
+            {
+                BlockedCgState s = _blockedCgRestore[i];
+                if (s.group != null)
+                {
+                    s.group.interactable = s.interactable;
+                    s.group.blocksRaycasts = s.blocksRaycasts;
+                }
+            }
+            _blockedCgRestore.Clear();
+            _backgroundBlockingApplied = false;
+        }
     }
 
     private void Update()
@@ -101,6 +242,7 @@ public class HandPanelGestureOpener : MonoBehaviour
         if (!dataCollector.hasHand || dataCollector.handCount <= 0)
         {
             _stableFrames = 0;
+            _thumbsUpMatchStartUnscaled = -1f;
             return;
         }
 
@@ -109,22 +251,56 @@ public class HandPanelGestureOpener : MonoBehaviour
         if (rejectWhilePinching && IsPinching(hand))
         {
             _stableFrames = 0;
+            _thumbsUpMatchStartUnscaled = -1f;
             return;
         }
 
-        bool match = EvaluatePreset(hand);
+        bool matchRaw = EvaluatePreset(hand);
+        bool match = ApplyThumbsUpHoldGate(matchRaw);
+
+        int framesNeeded = stableFramesRequired;
+        if (gesturePreset == GesturePreset.ThumbsUp)
+            framesNeeded += thumbsUpStableFrameBonus;
+
         if (match)
         {
             _stableFrames++;
-            if (_stableFrames >= stableFramesRequired)
+            if (_stableFrames >= framesNeeded)
             {
                 _stableFrames = 0;
-                _cooldownUntil = Time.unscaledTime + cooldownSeconds;
+                _thumbsUpMatchStartUnscaled = -1f;
+                float cd = cooldownSeconds;
+                if (gesturePreset == GesturePreset.ThumbsUp)
+                    cd += thumbsUpExtraCooldownSeconds;
+                _cooldownUntil = Time.unscaledTime + cd;
                 ApplyPanelAction();
             }
         }
         else
+        {
             _stableFrames = 0;
+            // 竖大拇指：姿势仍对但尚未满「最短保持」时不能重置计时，否则会永远无法触发
+            if (gesturePreset != GesturePreset.ThumbsUp || !matchRaw)
+                _thumbsUpMatchStartUnscaled = -1f;
+        }
+    }
+
+    /// <summary>竖大拇指：先要求姿势连续保持 thumbsUpMinHoldSeconds，再允许累计稳定帧。</summary>
+    private bool ApplyThumbsUpHoldGate(bool matchRaw)
+    {
+        if (gesturePreset != GesturePreset.ThumbsUp || thumbsUpMinHoldSeconds <= 0f)
+            return matchRaw;
+
+        if (!matchRaw)
+        {
+            _thumbsUpMatchStartUnscaled = -1f;
+            return false;
+        }
+
+        if (_thumbsUpMatchStartUnscaled < 0f)
+            _thumbsUpMatchStartUnscaled = Time.unscaledTime;
+
+        return Time.unscaledTime - _thumbsUpMatchStartUnscaled >= thumbsUpMinHoldSeconds;
     }
 
     private void ApplyPanelAction()

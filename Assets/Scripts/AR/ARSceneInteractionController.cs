@@ -367,7 +367,8 @@ public class ARSceneInteractionController : MonoBehaviour
             return;
         }
         StopCurrentTrack();
-        SetArModelsSuppressedForUi(true);
+        // 名曲赏析打开时保持 AR 模型可见（仅故事面板/演奏模式仍按原逻辑隐藏）。
+        SetArModelsSuppressedForUi(false);
         SetActiveSafe(sharedStoryPanel, false);
         HideOptionMenuVisual();
         SetActiveSafe(panel, true);

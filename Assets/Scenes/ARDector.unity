@@ -177,7 +177,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -379,7 +379,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -672, y: -16}
+  m_AnchoredPosition: {x: -672, y: 138}
   m_SizeDelta: {x: 300, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &30136421
@@ -395,7 +395,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 254759204}
-  pieceNameOrLabel: "\u9AD8\u5C71\u6D41\u6C34"
+  pieceNameOrLabel: "\u585E\u4E0A\u66F2"
 --- !u!114 &30136422
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -439,7 +439,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 30136423}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 30136421}
+        m_TargetAssemblyTypeName: ARMusicTrackButtonRelay, Assembly-CSharp
+        m_MethodName: OnClickPlayThisTrack
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &30136423
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -460,8 +472,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 3571e2e6ca37f0048a133cb3b4773298, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -1188,7 +1200,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1320,7 +1332,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -215, y: -16}
+  m_AnchoredPosition: {x: -672, y: -254}
   m_SizeDelta: {x: 300, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &91821446
@@ -1336,7 +1348,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 254759204}
-  pieceNameOrLabel: "\u9AD8\u5C71\u6D41\u6C34"
+  pieceNameOrLabel: "\u9633\u6625"
 --- !u!114 &91821447
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1380,7 +1392,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 91821448}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 91821446}
+        m_TargetAssemblyTypeName: ARMusicTrackButtonRelay, Assembly-CSharp
+        m_MethodName: OnClickPlayThisTrack
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &91821448
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1401,8 +1425,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 3571e2e6ca37f0048a133cb3b4773298, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -2790,8 +2814,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 3571e2e6ca37f0048a133cb3b4773298, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -3004,13 +3028,31 @@ MonoBehaviour:
     performanceRotationOffsetEuler: {x: 0, y: 180, z: 90}
     musicPanel: {fileID: 9400489}
     storyPages:
-    - image: {fileID: 0}
+    - image: {fileID: 21300000, guid: 005dd5ec54a1ce4498a58aa9ee70d41e, type: 3}
+      pageTitle: "\u4F2F\u7259\u7EDD\u5F26"
+      pageBody: "\u4F2F\u7259\u539F\u59D3\u4FDE\uFF0C\u540D\u745E\uFF0C\u5B57\u4F2F\u7259\uFF0C\u6625\u79CB\u6218\u56FD\u65F6\u671F\u664B\u56FD\u7684\u4E0A\u5927\u592B\u3002\u4E0D\u4EC5\u65E2\u662F\u629A\u7434\u9AD8\u624B\uFF0C\u53C8\u662F\u4F5C\u66F2\u5BB6\uFF0C\u6545\u88AB\u4EBA\u5C0A\u4E3A\u201C\u7434\u4ED9\u201D\u3002\u800C\u949F\u5B50\u671F\uFF0C\u540D\u5FBD\uFF0C\u5B57\u5B50\u671F\uFF0C\u6625\u79CB\u695A\u56FD\u4EBA\uFF0C\u76F8\u4F20\u4ED6\u662F\u4E00\u4E2A\u6234\u6597\u7B20\u3001\u62AB\u84D1\u8863\u3001\u80CC\u51B2\u62C5\u3001\u62FF\u677F\u65A7\u7684\u6A35\u592B\u3002\n\u4FDE\u4F2F\u7259\u81EA\u5E7C\u806A\u6167\u7075\u654F\uFF0C\u5E76\u4E14\u6709\u7740\u6781\u9AD8\u7684\u97F3\u4E50\u5929\u8D4B\u3002\u5E74\u8F7B\u7684\u65F6\u5019\u8DDF\u7740\u6210\u8FDE\u5148\u751F\u5B66\u5F39\u53E4\u7434\uFF0C\u6DF1\u5F97\u6210\u8FDE\u5148\u751F\u7684\u539A\u7231\uFF0C\u4F2F\u7259\u52E4\u594B\u597D\u5B66\uFF0C\u7434\u6280\u8FDB\u6B65\u975E\u5E38\u8FC5\u901F\u3002\u4F46\u4FDE\u4F2F\u7259\u8FD8\u662F\u975E\u5E38\u82E6\u95F7\uFF0C\u4ED6\u5E76\u4E0D\u6EE1\u8DB3\u81EA\u5DF1\u7684\u6F14\u594F\uFF0C\u89C9\u5F97\u81EA\u5DF1\u5728\u7434\u827A\u4E0A\u8FD8\u6CA1\u6709\u8FBE\u5230\u66F4\u9AD8\u7684\u5883\u754C\u3002"
+    - image: {fileID: 21300000, guid: 005dd5ec54a1ce4498a58aa9ee70d41e, type: 3}
       pageTitle: 
-      pageBody: 
+      pageBody: "\u4FDE\u4F2F\u7259\u5C06\u81EA\u5DF1\u7684\u60F3\u6CD5\u544A\u8BC9\u4E86\u8001\u5E08\uFF0C\u5F97\u77E5\u4ED6\u7684\u70E6\u607C\u540E\uFF0C\u4FBF\u6253\u7B97\u5E26\u4F2F\u7259\u53BB\u84EC\u83B1\u5C71\u62DC\u89C1\u81EA\u5DF1\u7684\u8001\u5E08\u65B9\u5B50\u6625\u3002\u5F53\u8239\u884C\u81F3\u5230\u4E1C\u6D77\u7684\u84EC\u83B1\u5C71\u65F6\uFF0C\u8001\u5E08\u8FB9\u8BA9\u4ED6\u81EA\u5DF1\u53BB\u6B23\u8D4F\u5927\u81EA\u7136\u7684\u666F\u8272\uFF0C\u9762\u5BF9\u5927\u81EA\u7136\u7684\u6CE2\u6F9C\u58EE\u9614\uFF0C\u4FDE\u4F2F\u7259\u7684\u5FC3\u5883\u53D1\u751F\u4E86\u5F88\u5927\u7684\u6539\u53D8\u3002\u5728\u4E0E\u5C71\u4E3A\u670B\uFF0C\u4E0E\u6D77\u4E3A\u4F34\u7684\u751F\u6D3B\u4E2D\uFF0C\u4FDE\u4F2F\u7259\u7684\u7434\u827A\u5F97\u5230\u4E86\u5F88\u5927\u7684\u63D0\u5347\u3002"
+    - image: {fileID: 21300000, guid: 005dd5ec54a1ce4498a58aa9ee70d41e, type: 3}
+      pageTitle: 
+      pageBody: "\u7136\u800C\u4F2F\u7259\u6210\u4E3A\u4E86\u4E00\u4EE3\u6770\u51FA\u7684\u7434\u5E08\uFF0C\u4F46\u662F\u771F\u5FC3\u80FD\u542C\u61C2\u4ED6\u66F2\u5B50\u7684\u4EBA\u5374\u6CA1\u6709\u51E0\u4E2A\u3002\u6709\u4E00\u5E74\uFF0C\u4FDE\u4F2F\u7259\u5949\u664B\u541B\u4E4B\u547D\u51FA\u4F7F\u695A\u56FD\uFF0C\u4E00\u591C\u4F2F\u7259\u5750\u8239\u72EC\u81EA\u6E38\u89C8\uFF0C\u665A\u4E0A\u7684\u666F\u8272\u5341\u5206\u7F8E\u4E3D\u8FF7\u4EBA\u3002\u4FDE\u4F2F\u7259\u671B\u7740\u5934\u4E0A\u7684\u660E\u6708\uFF0C\u4E0D\u7981\u7434\u5174\u5927\u53D1\uFF0C\u4FBF\u5E2D\u5730\u800C\u5750\u4E13\u5FC3\u81F4\u5FD7\u7684\u5F39\u8D77\u7434\u6765\u3002\u5FFD\u7136\u6709\u4E00\u4EBA\u62CD\u624B\u53EB\u7EDD\uFF0C\u4F2F\u7259\u95FB\u58F0\u8D70\u51FA\u8239\u6765\uFF0C\u770B\u5230\u4E00\u4E2A\u6A35\u592B\u7AD9\u5728\u5CB8\u8FB9\uFF0C\u8FD9\u4EBA\u6B63\u662F\u949F\u5B50\u671F\u3002"
+    - image: {fileID: 21300000, guid: 005dd5ec54a1ce4498a58aa9ee70d41e, type: 3}
+      pageTitle: 
+      pageBody: "\u949F\u5B50\u671F\u975E\u5E38\u6B23\u8D4F\u4F2F\u7259\u6F14\u594F\u7684\u66F2\u5B50\uFF0C\u6C89\u9189\u7434\u58F0\u4E2D\u96BE\u4EE5\u81EA\u62D4\u3002\u6709\u4EBA\u80FD\u542C\u61C2\u81EA\u5DF1\u7684\u66F2\u5B50\uFF0C\u4F2F\u7259\u5174\u594B\u6781\u4E86\uFF0C\u53C8\u4E3A\u949F\u5B50\u671F\u6F14\u594F\u4E86\u51E0\u9996\u66F2\u5B50\uFF0C\u4E24\u4EBA\u4FBF\u6210\u4E3A\u4E86\u77E5\u97F3\u670B\u53CB\uFF0C\u611F\u53F9\u7F18\u5206\u771F\u662F\u5999\u4E0D\u53EF\u8A00\u5450\u3002\n\u4E24\u4EBA\u7EA6\u5B9A\u7B2C\u4E8C\u5E74\u7684\u540C\u4E00\u65E5\uFF0C\u518D\u5728\u6C5F\u8FB9\u76F8\u4F1A\u3002\u8FC7\u4E86\u4E00\u5E74\uFF0C\u4FDE\u4F2F\u7259\u5982\u7EA6\u6765\u5230\u6C5F\u8FB9\uFF0C\u4F46\u6CA1\u6709\u89C1\u5230\u949F\u5B50\u671F\u7684\u8EAB\u5F71\uFF0C\u5374\u89C1\u5230\u4E86\u949F\u5B50\u671F\u7684\u575F\u5893\u3002\u539F\u6765\u949F\u5B50\u671F\u5DF2\u4E0D\u5E78\u67D3\u75C5\u53BB\u4E16\u4E86\uFF0C\u4F2F\u7259\u4E07\u5206\u60B2\u75DB\uFF0C\u51C4\u695A\u5730\u5F39\u8D77\u4E86\u53E4\u66F2\u300A\u9AD8\u5C71\u6D41\u6C34\u300B\uFF0C\u968F\u540E\u6454\u788E\u4E86\u81EA\u5DF1\u7684\u7476\u7434\uFF0C\u8BF4\u8FD9\u9996\u66F2\u5B50\u4EE5\u540E\u90FD\u4E0D\u4F1A\u518D\u5F39\u3002"
     musicTracks:
-    - pieceName: 
-      title: 
-      clip: {fileID: 0}
+    - pieceName: "\u767D\u96EA"
+      title: "\u767D\u96EA"
+      clip: {fileID: 8300000, guid: 755179dcd962f6149b16c58103cd5ccb, type: 3}
+    - pieceName: "\u9633\u6625"
+      title: "\u9633\u6625"
+      clip: {fileID: 8300000, guid: 2227567fd3a55a542ba31e5f9891fd44, type: 3}
+    - pieceName: "\u79BB\u9A9A"
+      title: "\u79BB\u9A9A"
+      clip: {fileID: 8300000, guid: d94f569bc5695304f9da628df3b68095, type: 3}
+    - pieceName: "\u695A\u6B4C"
+      title: "\u695A\u6B4C"
+      clip: {fileID: 8300000, guid: 1f89467c57b7a0844b8de39b59bdbfc9, type: 3}
   - instrumentName: pipa
     modelRoot: {fileID: 819585296}
     performanceRoot: {fileID: 805165302}
@@ -3020,10 +3062,31 @@ MonoBehaviour:
     performanceRotationOffsetEuler: {x: 0, y: 180, z: 270}
     musicPanel: {fileID: 84657997}
     storyPages:
-    - image: {fileID: 0}
+    - image: {fileID: 21300000, guid: cd6c4772c0f484840b046aafe4d8ea43, type: 3}
+      pageTitle: "\u7435\u7436\u884C"
+      pageBody: "\u5510\u4EE3\u5143\u548C\u5E74\u95F4\uFF0C\u767D\u5C45\u6613\u56E0\u653F\u6CBB\u539F\u56E0\u88AB\u8D2C\u4E3A\u6C5F\u5DDE\u53F8\u9A6C\uFF0C\u8FDC\u79BB\u957F\u5B89\u3002\u8FD9\u4E00\u65F6\u671F\uFF0C\u4ED6\u7684\u751F\u6D3B\u73AF\u5883\u6E05\u51B7\uFF0C\u5FC3\u5883\u4E5F\u8F83\u4E3A\u4F4E\u843D\u3002\n\u4E00\u5929\u591C\u665A\uFF0C\u4ED6\u5728\u6C5F\u8FB9\u4E3A\u670B\u53CB\u9001\u884C\u3002\u5E2D\u95F4\u6C14\u6C1B\u5E76\u4E0D\u70ED\u95F9\uFF0C\u4F17\u4EBA\u60C5\u7EEA\u90FD\u8F83\u4E3A\u6C89\u95F7\u3002\u5C31\u5728\u5BB4\u5E2D\u5C06\u8981\u7ED3\u675F\u65F6\uFF0C\u6C5F\u9762\u4E0A\u4F20\u6765\u4E00\u9635\u7435\u7436\u58F0\u3002\u4E50\u58F0\u6E05\u6670\u800C\u5BCC\u6709\u5C42\u6B21\uFF0C\u4E0E\u4E00\u822C\u7684\u6C11\u95F4\u6F14\u594F\u4E0D\u540C\uFF0C\u56E0\u6B64\u5F15\u8D77\u4E86\u767D\u5C45\u6613\u7684\u6CE8\u610F\u3002"
+    - image: {fileID: 21300000, guid: cd6c4772c0f484840b046aafe4d8ea43, type: 3}
       pageTitle: 
-      pageBody: 
-    musicTracks: []
+      pageBody: "\u4ED6\u547D\u4EBA\u5C06\u5F39\u594F\u8005\u8BF7\u5230\u8239\u4E0A\u3002\u6765\u8005\u662F\u4E00\u4F4D\u5973\u5B50\uFF0C\u8863\u7740\u6734\u7D20\uFF0C\u795E\u60C5\u5E73\u9759\u3002\u5979\u8D77\u521D\u6709\u6240\u8FDF\u7591\uFF0C\u4F46\u5728\u8BF7\u6C42\u4E4B\u4E0B\uFF0C\u8FD8\u662F\u518D\u6B21\u5F39\u594F\u4E86\u4E00\u66F2\u3002\u5979\u7684\u6F14\u594F\u6280\u5DE7\u5A34\u719F\uFF0C\u97F3\u8272\u53D8\u5316\u4E30\u5BCC\uFF1A\u4F4E\u97F3\u6D51\u539A\uFF0C\u9AD8\u97F3\u7EC6\u817B\uFF0C\u8282\u594F\u7531\u7F13\u5230\u6025\uFF0C\u8868\u73B0\u51FA\u8F83\u5F3A\u7684\u97F3\u4E50\u8868\u73B0\u529B\u3002\u8FD9\u4E00\u6F14\u594F\u4F7F\u5728\u573A\u7684\u4EBA\u90FD\u5B89\u9759\u4E0B\u6765\u3002"
+    - image: {fileID: 21300000, guid: cd6c4772c0f484840b046aafe4d8ea43, type: 3}
+      pageTitle: 
+      pageBody: "\u6F14\u594F\u7ED3\u675F\u540E\uFF0C\u767D\u5C45\u6613\u8BE2\u95EE\u5979\u7684\u6765\u5386\u3002\u5973\u5B50\u8BF4\u660E\u81EA\u5DF1\u65E9\u5E74\u66FE\u5728\u957F\u5B89\u751F\u6D3B\uFF0C\u4EE5\u7435\u7436\u6F14\u594F\u4E3A\u4E1A\u3002\u5F53\u65F6\u6280\u827A\u51FA\u4F17\uFF0C\u53D7\u5230\u8BB8\u591A\u4EBA\u7684\u8D4F\u8BC6\uFF0C\u5E38\u5728\u5BB4\u5E2D\u4E2D\u8868\u6F14\u3002\u968F\u7740\u5E74\u9F84\u589E\u957F\uFF0C\u5979\u9010\u6E10\u5931\u53BB\u539F\u6709\u7684\u5730\u4F4D\uFF0C\u540E\u6765\u5AC1\u7ED9\u5546\u4EBA\uFF0C\u968F\u4E4B\u79BB\u5F00\u957F\u5B89\uFF0C\u5728\u5404\u5730\u6F02\u6CCA\u3002\n\u8FD9\u4E00\u7ECF\u5386\u5F15\u8D77\u4E86\u767D\u5C45\u6613\u7684\u5171\u9E23\u3002\u4E24\u4EBA\u867D\u7136\u8EAB\u4EFD\u4E0D\u540C\uFF0C\u4F46\u90FD\u7ECF\u5386\u4E86\u7531\u76DB\u8F6C\u8870\u7684\u53D8\u5316\uFF1A\u4E00\u4EBA\u662F\u4ED5\u9014\u53D7\u632B\u7684\u5B98\u5458\uFF0C\u4E00\u4EBA\u662F\u5883\u9047\u6539\u53D8\u7684\u827A\u4EBA\u3002"
+    - image: {fileID: 21300000, guid: cd6c4772c0f484840b046aafe4d8ea43, type: 3}
+      pageTitle: 
+      pageBody: "\u5728\u8FD9\u6837\u7684\u80CC\u666F\u4E0B\uFF0C\u767D\u5C45\u6613\u5199\u4E0B\u300A\u7435\u7436\u884C\u300B\u4E00\u8BD7\uFF0C\u5BF9\u5F53\u665A\u7684\u89C1\u95FB\u8FDB\u884C\u8BB0\u5F55\u4E0E\u6292\u53D1\u3002\u8BD7\u4E2D\u4E0D\u4EC5\u63CF\u5199\u4E86\u7435\u7436\u6F14\u594F\u7684\u58F0\u97F3\u7279\u70B9\uFF0C\u4E5F\u901A\u8FC7\u5973\u5B50\u7684\u7ECF\u5386\u53CD\u6620\u4E86\u793E\u4F1A\u73B0\u5B9E\uFF0C\u540C\u65F6\u8868\u8FBE\u4E86\u4F5C\u8005\u81EA\u8EAB\u7684\u611F\u6168\u3002\n\u8BD7\u4E2D\u201C\u540C\u662F\u5929\u6DAF\u6CA6\u843D\u4EBA\uFF0C\u76F8\u9022\u4F55\u5FC5\u66FE\u76F8\u8BC6\u201D\u4E00\u53E5\uFF0C\u6982\u62EC\u4E86\u8FD9\u79CD\u57FA\u4E8E\u5171\u540C\u5904\u5883\u800C\u4EA7\u751F\u7684\u60C5\u611F\u8BA4\u540C\u3002"
+    musicTracks:
+    - pieceName: "\u585E\u4E0A\u66F2"
+      title: "\u585E\u4E0A\u66F2"
+      clip: {fileID: 8300000, guid: 51c4358df3d62a9459e1a10fc102d025, type: 3}
+    - pieceName: "\u5341\u9762\u57CB\u4F0F"
+      title: "\u5341\u9762\u57CB\u4F0F"
+      clip: {fileID: 8300000, guid: 89dd0c3475a446549990df26bc5f8ff3, type: 3}
+    - pieceName: "\u6625\u6C5F\u82B1\u6708\u591C"
+      title: "\u6625\u6C5F\u82B1\u6708\u591C"
+      clip: {fileID: 8300000, guid: 1c07f0f7c3245ca428631cc26593b06f, type: 3}
+    - pieceName: "\u5BD2\u9E26\u620F\u6C34"
+      title: "\u5BD2\u9E26\u620F\u6C34"
+      clip: {fileID: 8300000, guid: 3e79a828167ed4446a7e1a281762f608, type: 3}
   optionPanel: {fileID: 1381003400}
   optionMenuContentRoot: {fileID: 0}
   objectsHiddenWhileOptionMenuOnTop:
@@ -3035,7 +3098,7 @@ MonoBehaviour:
   sharedStoryPageNumberText: {fileID: 0}
   sharedStoryPrevButton: {fileID: 2046357081}
   sharedStoryNextButton: {fileID: 357749804}
-  musicAudioSource: {fileID: 0}
+  musicAudioSource: {fileID: 864101638}
   looseTrackNameMatch: 1
   arInputToDisable:
   - {fileID: 1661456702}
@@ -4383,14 +4446,15 @@ MonoBehaviour:
   m_text: New Text
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: eb8bacd46357fb4418b3d529965e7b08, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2979193228837331801, guid: eb8bacd46357fb4418b3d529965e7b08,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -4415,7 +4479,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -4446,7 +4510,7 @@ MonoBehaviour:
   m_margin: {x: -98.198784, y: -42.89949, z: -117.59363, w: -147.39204}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &373221590
@@ -5106,17 +5170,18 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: story
+  m_text: "\u6545\u4E8B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: eb8bacd46357fb4418b3d529965e7b08, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2979193228837331801, guid: eb8bacd46357fb4418b3d529965e7b08,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -5172,7 +5237,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &431680589
@@ -7576,17 +7641,18 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: "\u695A\u6B4C"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: eb8bacd46357fb4418b3d529965e7b08, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2979193228837331801, guid: eb8bacd46357fb4418b3d529965e7b08,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -7642,7 +7708,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &746914762
@@ -7983,14 +8049,15 @@ MonoBehaviour:
   m_text: New Text
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: eb8bacd46357fb4418b3d529965e7b08, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2979193228837331801, guid: eb8bacd46357fb4418b3d529965e7b08,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -8046,7 +8113,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: -407.73, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &804246457
@@ -8551,6 +8618,134 @@ Transform:
   - {fileID: 1271656021}
   m_Father: {fileID: 113147718}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &864101637
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 864101639}
+  - component: {fileID: 864101638}
+  m_Layer: 0
+  m_Name: famousmusicsourceplayer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!82 &864101638
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 864101637}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!4 &864101639
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 864101637}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 18.77291, y: -8.49822, z: -175.8681}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &865637787
 GameObject:
   m_ObjectHideFlags: 0
@@ -8568,7 +8763,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &865637788
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8606,15 +8801,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 28b85105f116782469bbf0f03c18b185, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -10970,7 +11165,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -672, y: -16}
+  m_AnchoredPosition: {x: -672, y: 145}
   m_SizeDelta: {x: 300, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1164137787
@@ -11016,7 +11211,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1164137788}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1164137790}
+        m_TargetAssemblyTypeName: ARMusicTrackButtonRelay, Assembly-CSharp
+        m_MethodName: OnClickPlayThisTrack
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1164137788
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11037,8 +11244,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 3571e2e6ca37f0048a133cb3b4773298, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -11068,7 +11275,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 254759204}
-  pieceNameOrLabel: "\u9AD8\u5C71\u6D41\u6C34"
+  pieceNameOrLabel: "\u767D\u96EA"
 --- !u!1 &1172940235
 GameObject:
   m_ObjectHideFlags: 0
@@ -11106,7 +11313,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 690, y: -16}
+  m_AnchoredPosition: {x: 690, y: -265}
   m_SizeDelta: {x: 300, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1172940237
@@ -11122,7 +11329,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 254759204}
-  pieceNameOrLabel: "\u9AD8\u5C71\u6D41\u6C34"
+  pieceNameOrLabel: "\u5BD2\u9E26\u620F\u6C34"
 --- !u!114 &1172940238
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11166,7 +11373,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1172940239}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1172940237}
+        m_TargetAssemblyTypeName: ARMusicTrackButtonRelay, Assembly-CSharp
+        m_MethodName: OnClickPlayThisTrack
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1172940239
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11187,8 +11406,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 3571e2e6ca37f0048a133cb3b4773298, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -11958,8 +12177,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 3571e2e6ca37f0048a133cb3b4773298, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -12535,17 +12754,18 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: "\u6625\u6C5F\u82B1\u6708\u591C"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: eb8bacd46357fb4418b3d529965e7b08, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2979193228837331801, guid: eb8bacd46357fb4418b3d529965e7b08,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -12601,7 +12821,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1268629620
@@ -13755,7 +13975,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.5622641, g: 0.5622641, b: 0.5622641, a: 0.392}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.392}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -13869,17 +14089,18 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: "\u9633\u6625"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: eb8bacd46357fb4418b3d529965e7b08, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2979193228837331801, guid: eb8bacd46357fb4418b3d529965e7b08,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -13935,7 +14156,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1399166051
@@ -14357,17 +14578,18 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: "\u79BB\u9A9A"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: eb8bacd46357fb4418b3d529965e7b08, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2979193228837331801, guid: eb8bacd46357fb4418b3d529965e7b08,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -14423,7 +14645,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1437458793
@@ -14781,7 +15003,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 235, y: -16}
+  m_AnchoredPosition: {x: 690, y: 145}
   m_SizeDelta: {x: 300, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1467625077
@@ -14797,7 +15019,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 254759204}
-  pieceNameOrLabel: "\u9AD8\u5C71\u6D41\u6C34"
+  pieceNameOrLabel: "\u79BB\u9A9A"
 --- !u!114 &1467625078
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14841,7 +15063,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1467625079}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1467625077}
+        m_TargetAssemblyTypeName: ARMusicTrackButtonRelay, Assembly-CSharp
+        m_MethodName: OnClickPlayThisTrack
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1467625079
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14862,8 +15096,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 3571e2e6ca37f0048a133cb3b4773298, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -15244,8 +15478,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 3571e2e6ca37f0048a133cb3b4773298, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -15402,17 +15636,18 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: "\u585E\u4E0A\u66F2"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: eb8bacd46357fb4418b3d529965e7b08, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2979193228837331801, guid: eb8bacd46357fb4418b3d529965e7b08,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -15468,7 +15703,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1550472797
@@ -15619,17 +15854,18 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: audio
+  m_text: "\u540D\u66F2"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: eb8bacd46357fb4418b3d529965e7b08, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2979193228837331801, guid: eb8bacd46357fb4418b3d529965e7b08,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -15685,7 +15921,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1572069319
@@ -16754,17 +16990,18 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: "\u5BD2\u9E26\u620F\u6C34"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: eb8bacd46357fb4418b3d529965e7b08, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2979193228837331801, guid: eb8bacd46357fb4418b3d529965e7b08,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -16820,7 +17057,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1691322347
@@ -17793,7 +18030,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 235, y: -16}
+  m_AnchoredPosition: {x: 682, y: 138}
   m_SizeDelta: {x: 300, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1777766735
@@ -17809,7 +18046,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 254759204}
-  pieceNameOrLabel: "\u9AD8\u5C71\u6D41\u6C34"
+  pieceNameOrLabel: "\u6625\u6C5F\u82B1\u6708\u591C"
 --- !u!114 &1777766736
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17853,7 +18090,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1777766737}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1777766735}
+        m_TargetAssemblyTypeName: ARMusicTrackButtonRelay, Assembly-CSharp
+        m_MethodName: OnClickPlayThisTrack
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1777766737
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17874,8 +18123,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 3571e2e6ca37f0048a133cb3b4773298, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -18405,17 +18654,18 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: "\u767D\u96EA"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: eb8bacd46357fb4418b3d529965e7b08, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2979193228837331801, guid: eb8bacd46357fb4418b3d529965e7b08,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -18471,7 +18721,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1867358187
@@ -19012,17 +19262,18 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: "\u5341\u9762\u57CB\u4F0F"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: eb8bacd46357fb4418b3d529965e7b08, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2979193228837331801, guid: eb8bacd46357fb4418b3d529965e7b08,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -19078,7 +19329,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1897835359
@@ -19146,17 +19397,18 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: play
+  m_text: "\u6F14\u594F"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: eb8bacd46357fb4418b3d529965e7b08, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2979193228837331801, guid: eb8bacd46357fb4418b3d529965e7b08,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -19212,7 +19464,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1902803240
@@ -20415,7 +20667,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 690, y: -16}
+  m_AnchoredPosition: {x: 690, y: -254}
   m_SizeDelta: {x: 300, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1988364747
@@ -20431,7 +20683,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 254759204}
-  pieceNameOrLabel: "\u9AD8\u5C71\u6D41\u6C34"
+  pieceNameOrLabel: "\u695A\u6B4C"
 --- !u!114 &1988364748
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20475,7 +20727,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1988364749}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1988364747}
+        m_TargetAssemblyTypeName: ARMusicTrackButtonRelay, Assembly-CSharp
+        m_MethodName: OnClickPlayThisTrack
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1988364749
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20496,8 +20760,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 3571e2e6ca37f0048a133cb3b4773298, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -21117,7 +21381,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -215, y: -16}
+  m_AnchoredPosition: {x: -672, y: -265}
   m_SizeDelta: {x: 300, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2035392331
@@ -21133,7 +21397,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 254759204}
-  pieceNameOrLabel: "\u9AD8\u5C71\u6D41\u6C34"
+  pieceNameOrLabel: "\u5341\u9762\u57CB\u4F0F"
 --- !u!114 &2035392332
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21177,7 +21441,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2035392333}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2035392331}
+        m_TargetAssemblyTypeName: ARMusicTrackButtonRelay, Assembly-CSharp
+        m_MethodName: OnClickPlayThisTrack
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &2035392333
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21198,8 +21474,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 3571e2e6ca37f0048a133cb3b4773298, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -22643,3 +22919,4 @@ SceneRoots:
   - {fileID: 1083138138}
   - {fileID: 1442038956}
   - {fileID: 420805046}
+  - {fileID: 864101639}

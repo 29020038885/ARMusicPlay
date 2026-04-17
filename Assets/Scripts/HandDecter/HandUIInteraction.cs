@@ -20,9 +20,21 @@ public class HandUIInteraction : MonoBehaviour
     [Range(0.1f, 1f)]
     public float interactionCooldown = 0.3f;
 
-    [Tooltip("射线未命中时，用距离判定按钮的半径（像素）")]
-    [Range(10f, 80f)]
-    public float detectionRadius = 40f;
+    [Tooltip("射线未命中时，用距离判定按钮的半径（像素）；越小越不易误点旁边按钮")]
+    [Range(8f, 80f)]
+    public float detectionRadius = 28f;
+
+    [Tooltip("捏合点周围圆形采样半径（像素）：在圆心及圆周多点做 UI 射线，0 则仅圆心一点")]
+    [Range(0f, 80f)]
+    public float pinchRaycastProbeRadiusPixels = 24f;
+
+    [Tooltip("圆周采样条数（不含圆心）；半径为 0 时不使用")]
+    [Range(4, 24)]
+    public int pinchRaycastCircleSegments = 12;
+
+    [Tooltip("从系统判定捏合起，指尖需保持捏合至少该秒数后才允许触发点击（与 HandGestureDetector 稳定帧叠加，减轻误触）")]
+    [Range(0f, 0.45f)]
+    public float pinchHoldSecondsBeforeClick = 0.08f;
 
     [Tooltip("同一帧最多触发一次 UI 点击，避免双手/误检导致一次手势触发多次")]
     public bool singleClickPerFrame = true;
@@ -48,6 +60,8 @@ public class HandUIInteraction : MonoBehaviour
     private Dictionary<int, GameObject> currentInteractingByHand = new Dictionary<int, GameObject>();
     private float lastGlobalInteractionTime = -10f;
     private bool hasTriggeredInCurrentPinchSession = false;
+    private readonly Dictionary<int, float> _pinchHoldStartTimeByHand = new Dictionary<int, float>();
+    private readonly List<RaycastResult> _raycastScratch = new List<RaycastResult>(32);
 
     void Start()
     {
@@ -84,6 +98,7 @@ public class HandUIInteraction : MonoBehaviour
             currentInteractingByHand.Clear();
             isInteracting = false;
             hasTriggeredInCurrentPinchSession = false;
+            _pinchHoldStartTimeByHand.Clear();
             return;
         }
 
@@ -125,6 +140,17 @@ public class HandUIInteraction : MonoBehaviour
             int handIndex = hand.handIndex;
             if (lastInteractionTimes.TryGetValue(handIndex, out float t) && Time.time - t < interactionCooldown)
                 continue;
+
+            if (pinchHoldSecondsBeforeClick > 0f)
+            {
+                if (!_pinchHoldStartTimeByHand.TryGetValue(handIndex, out float pinchStart))
+                {
+                    _pinchHoldStartTimeByHand[handIndex] = Time.time;
+                    continue;
+                }
+                if (Time.time - pinchStart < pinchHoldSecondsBeforeClick)
+                    continue;
+            }
 
             GameObject hit = RaycastUI(hand.pinchScreenPosition);
             if (hit != null)
@@ -172,17 +198,61 @@ public class HandUIInteraction : MonoBehaviour
             }
         }
 
+        PrunePinchHoldTimes(gestureDetector.pinchHands);
+
         isInteracting = currentInteractingByHand.Count > 0;
     }
 
-    /// <summary>只与可点击的 UI 交互；仅命中 Button/Toggle/带点击事件的 UI 才返回，不处理普通 GameObject</summary>
+    private void PrunePinchHoldTimes(List<HandGestureDetector.PinchHandInfo> activePinchHands)
+    {
+        if (_pinchHoldStartTimeByHand.Count == 0) return;
+        var active = new HashSet<int>();
+        for (int i = 0; i < activePinchHands.Count; i++)
+            active.Add(activePinchHands[i].handIndex);
+        List<int> toRemove = null;
+        foreach (var kv in _pinchHoldStartTimeByHand)
+        {
+            if (!active.Contains(kv.Key))
+            {
+                if (toRemove == null) toRemove = new List<int>();
+                toRemove.Add(kv.Key);
+            }
+        }
+        if (toRemove != null)
+        {
+            for (int i = 0; i < toRemove.Count; i++)
+                _pinchHoldStartTimeByHand.Remove(toRemove[i]);
+        }
+    }
+
+    /// <summary>在捏合点及周围小圆上多点射线，优先圆心命中，再试圆周（比单点更容易点中按钮）。</summary>
     private GameObject RaycastUI(Vector2 screenPos)
+    {
+        GameObject center = RaycastUIAtPoint(screenPos);
+        if (center != null)
+            return center;
+        if (eventSystem == null || pinchRaycastProbeRadiusPixels < 1f)
+            return null;
+
+        int n = Mathf.Clamp(pinchRaycastCircleSegments, 4, 24);
+        for (int i = 0; i < n; i++)
+        {
+            float a = i * (Mathf.PI * 2f / n);
+            Vector2 offset = new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * pinchRaycastProbeRadiusPixels;
+            GameObject hit = RaycastUIAtPoint(screenPos + offset);
+            if (hit != null)
+                return hit;
+        }
+        return null;
+    }
+
+    private GameObject RaycastUIAtPoint(Vector2 screenPos)
     {
         if (eventSystem == null) return null;
         var pointerData = new PointerEventData(eventSystem) { position = screenPos };
-        var results = new List<RaycastResult>();
-        eventSystem.RaycastAll(pointerData, results);
-        return GetFirstClickableFromResults(results);
+        _raycastScratch.Clear();
+        eventSystem.RaycastAll(pointerData, _raycastScratch);
+        return GetFirstClickableFromResults(_raycastScratch);
     }
 
     /// <summary>从射线结果里取第一个可点击的物体；若命中 Body 等遮挡，会沿层级找到背后的 Button</summary>
@@ -193,19 +263,42 @@ public class HandUIInteraction : MonoBehaviour
         {
             if (r.gameObject == null) continue;
             GameObject handler = ExecuteEvents.GetEventHandler<IPointerClickHandler>(r.gameObject);
-            if (handler != null) return handler;
+            if (handler != null)
+            {
+                if (ShouldSuppressInteractionUnderModal(handler.transform))
+                    continue;
+                return handler;
+            }
             var btn = r.gameObject.GetComponent<Button>();
-            if (btn != null && btn.interactable) return r.gameObject;
+            if (btn != null && btn.interactable)
+            {
+                if (ShouldSuppressInteractionUnderModal(btn.transform))
+                    continue;
+                return r.gameObject;
+            }
             var toggle = r.gameObject.GetComponent<Toggle>();
-            if (toggle != null && toggle.interactable) return r.gameObject;
+            if (toggle != null && toggle.interactable)
+            {
+                if (ShouldSuppressInteractionUnderModal(toggle.transform))
+                    continue;
+                return r.gameObject;
+            }
         }
         return null;
+    }
+
+    /// <summary>手势打开的面板显示时，不处理背景层上的点击（捏合会绕过 CanvasGroup.interactable）。</summary>
+    private static bool ShouldSuppressInteractionUnderModal(Transform t)
+    {
+        return HandPanelGestureOpener.ShouldSuppressHandUiForTransform(t);
     }
 
     /// <summary>对命中的物体触发点击（Button / Toggle / 任意 IPointerClickHandler）</summary>
     private void TriggerClick(GameObject target, Vector2 screenPos)
     {
         if (target == null) return;
+        if (ShouldSuppressInteractionUnderModal(target.transform))
+            return;
         Button btn = target.GetComponent<Button>();
         if (btn != null && btn.interactable)
         {
@@ -230,8 +323,11 @@ public class HandUIInteraction : MonoBehaviour
 
     private void TriggerButtonClick(Button button)
     {
-        if (button != null && button.interactable)
-            button.onClick.Invoke();
+        if (button == null || !button.interactable)
+            return;
+        if (ShouldSuppressInteractionUnderModal(button.transform))
+            return;
+        button.onClick.Invoke();
     }
 
     private Button FindNearestButton(Vector2 screenPosition)
@@ -240,11 +336,17 @@ public class HandUIInteraction : MonoBehaviour
         if (cam == null) return null;
 
         Button nearest = null;
-        float minDist = detectionRadius;
+        float pickGate = detectionRadius;
+        if (pinchRaycastProbeRadiusPixels > 0.5f)
+            pickGate += pinchRaycastProbeRadiusPixels * 0.65f;
+        float minDist = pickGate;
 
         foreach (Button b in allButtons)
         {
             if (b == null || !b.interactable || !b.gameObject.activeInHierarchy) 
+                continue;
+
+            if (ShouldSuppressInteractionUnderModal(b.transform))
                 continue;
 
             // 关键：过滤掉被 RectMask2D 裁剪掉的按钮
