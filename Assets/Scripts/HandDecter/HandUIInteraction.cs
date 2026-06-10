@@ -46,6 +46,10 @@ public class HandUIInteraction : MonoBehaviour
     [Tooltip("开启后：一次连续捏合只触发一次点击，必须先松手再捏合才会再次触发")]
     public bool triggerOncePerPinchSession = true;
 
+    [Tooltip("捏合短暂丢失时的容错时间（秒）。在该时间内不重置“本次捏合已触发”状态，避免一次手势误触两次")]
+    [Range(0f, 0.35f)]
+    public float pinchReleaseGraceSeconds = 0.12f;
+
     [Header("状态")]
     public bool isInteracting;
     public Button currentInteractingButton;
@@ -60,6 +64,7 @@ public class HandUIInteraction : MonoBehaviour
     private Dictionary<int, GameObject> currentInteractingByHand = new Dictionary<int, GameObject>();
     private float lastGlobalInteractionTime = -10f;
     private bool hasTriggeredInCurrentPinchSession = false;
+    private float _lastAnyPinchSeenTime = -10f;
     private readonly Dictionary<int, float> _pinchHoldStartTimeByHand = new Dictionary<int, float>();
     private readonly List<RaycastResult> _raycastScratch = new List<RaycastResult>(32);
 
@@ -94,13 +99,21 @@ public class HandUIInteraction : MonoBehaviour
     {
         if (gestureDetector == null || gestureDetector.pinchCount == 0)
         {
-            currentInteractingButton = null;
-            currentInteractingByHand.Clear();
-            isInteracting = false;
-            hasTriggeredInCurrentPinchSession = false;
-            _pinchHoldStartTimeByHand.Clear();
+            // MediaPipe 在边界帧可能短暂掉 1~2 帧捏合结果；
+            // 这里做释放容错，避免同一次手势被误判为“松手再捏合”导致连点。
+            bool shouldResetSession = Time.time - _lastAnyPinchSeenTime >= pinchReleaseGraceSeconds;
+            if (shouldResetSession)
+            {
+                currentInteractingButton = null;
+                currentInteractingByHand.Clear();
+                isInteracting = false;
+                hasTriggeredInCurrentPinchSession = false;
+                _pinchHoldStartTimeByHand.Clear();
+            }
             return;
         }
+
+        _lastAnyPinchSeenTime = Time.time;
 
         if (triggerOncePerPinchSession && hasTriggeredInCurrentPinchSession)
             return;
